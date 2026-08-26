@@ -1873,14 +1873,13 @@ body.chart-modal-open,body.repi-modal-open{overflow:hidden!important}
   if(!nav||!heading||!title)return;
   title.setAttribute('tabindex','-1');
   const actions=document.createElement('div');actions.className='table-heading-actions';if(results){heading.appendChild(actions);actions.appendChild(results)}
-  const button=document.createElement('button');button.type='button';button.className='change-dataset-btn';button.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4M5 5h14v14H5z"/></svg><span>اختيار جدول آخر</span>';button.setAttribute('aria-label','العودة لاختيار قسم البيانات وجدول آخر');actions.appendChild(button);
-  button.addEventListener('click',()=>{
-    /* This button's own label is "اختيار جدول آخر" (choose ANOTHER TABLE) — so it must land the
-       user on the table list ("الجدول" / #datasetTableSelect), not on the section/group picker.
-       #datasetTableSelect is a real, visible native <select> (unlike #datasetGroupSelect, which
-       is hidden behind the radio-card domain picker), so it can be scrolled to and focused
-       directly. Fall back to the group picker only if a group hasn't been chosen yet, since the
-       table list stays hidden ([hidden]) until then. */
+  /* This button's own label is "اختيار جدول آخر" (choose ANOTHER TABLE) — so it must land the
+     user on the table list ("الجدول" / #datasetTableSelect), not on the section/group picker.
+     #datasetTableSelect is a real, visible native <select> (unlike #datasetGroupSelect, which
+     is hidden behind the radio-card domain picker), so it can be scrolled to and focused
+     directly. Fall back to the group picker only if a group hasn't been chosen yet, since the
+     table list stays hidden ([hidden]) until then. */
+  const goToTableList=()=>{
     const tableChoice=nav.querySelector('.dataset-table-choice:not([hidden])'),tableSelect=nav.querySelector('#datasetTableSelect');
     const scrollTarget=tableChoice||nav;
     scrollTarget.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'});
@@ -1888,7 +1887,20 @@ body.chart-modal-open,body.repi-modal-open{overflow:hidden!important}
       const target=(tableChoice&&tableSelect)||nav.querySelector('.dataset-domain-option.is-active')||nav.querySelector('.dataset-domain-option')||document.getElementById('datasetGroupSelect');
       target?.focus({preventScroll:true});
     },350);
-  });
+  };
+  /* Single copy of the button, placed directly above the table (next to "عرض الرسم البياني")
+     instead of up in the heading — the user explicitly asked for it here so it stays visible
+     right where the table starts, without a second copy up top. */
+  const toggleRow=document.querySelector('#dataTablePanel .dataset-chart-toggle-row');
+  if(toggleRow){
+    const button=document.createElement('button');
+    button.type='button';
+    button.className='change-dataset-btn';
+    button.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4M5 5h14v14H5z"/></svg><span>اختيار جدول آخر</span>';
+    button.setAttribute('aria-label','العودة لاختيار قسم البيانات وجدول آخر');
+    button.addEventListener('click',goToTableList);
+    toggleRow.appendChild(button);
+  }
   nav.addEventListener('change',event=>{
     if(event.target.id!=='datasetTableSelect')return;
     setTimeout(()=>{heading.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});setTimeout(()=>title.focus({preventScroll:true}),350)},80);
@@ -2693,6 +2705,35 @@ addEventListener('load',send);new ResizeObserver(send).observe(document.getEleme
   z-index:6!important;
   background:#e8f5ee!important;
   box-shadow:-2px 0 4px -2px rgba(36,58,50,.18)!important;
+}
+</style>
+<style id="methodology-accordion-open-hover-fix">
+/* بند "المنهجية الإحصائية" (وأي بند آخر بأكورديون المنهجية) لما يكون مفتوحًا
+   (data-state="open") ما كان يعطي أي تفاعل بصري عند تمرير الفأرة فوقه، لأن قاعدة
+   [data-state="open"] (خلفية بيضاء) ونفس تخصيص :hover (خلفية رمادية) بنفس درجة
+   التخصيص تقريبًا، فتكسب القاعدة الأحدث بالترتيب (data-state) دائمًا وتلغي تأثير
+   hover. هذا يضيف حالة hover صريحة للبند المفتوح بتخصيص أعلى. */
+#methodologyPanel .nds-accordion-btn[data-state="open"]:hover{
+  background:#f3f4f6!important;
+}
+</style>
+<style id="change-dataset-btn-toggle-row-placement">
+/* زر "اختيار جدول آخر" انتقل بالكامل ليكون فوق الجدول مباشرة (بجانب "عرض الرسم
+   البياني") بدل أعلى العنوان — بطلب صريح من المستخدم. flex-wrap يضمن إنه ينزل لسطر
+   ثاني بدل ما يتزاحم مع زر الرسم البياني على الشاشات المتوسطة، وعلى الجوال كلاهما
+   بعرض 100% (`.change-dataset-btn` و`.dataset-chart-toggle`) فينزلان تلقائيًا كل
+   واحد بسطر لوحده. */
+#dataTablePanel .dataset-chart-toggle-row{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  align-items:center!important;
+  gap:10px!important;
+}
+#dataTablePanel .dataset-chart-toggle-row .change-dataset-btn{
+  margin:0!important;
+}
+@media(max-width:600px){
+  #dataTablePanel .dataset-chart-toggle-row{flex-direction:column!important}
 }
 </style>
 </body>
