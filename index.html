@@ -1874,13 +1874,21 @@ body.chart-modal-open,body.repi-modal-open{overflow:hidden!important}
   title.setAttribute('tabindex','-1');
   const actions=document.createElement('div');actions.className='table-heading-actions';if(results){heading.appendChild(actions);actions.appendChild(results)}
   const button=document.createElement('button');button.type='button';button.className='change-dataset-btn';button.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4M5 5h14v14H5z"/></svg><span>اختيار جدول آخر</span>';button.setAttribute('aria-label','العودة لاختيار قسم البيانات وجدول آخر');actions.appendChild(button);
-  button.addEventListener('click',()=>{nav.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});setTimeout(()=>{
-    /* The native #datasetGroupSelect is visually hidden behind the radio-card domain
-       picker, so focusing it directly is a no-op. Focus the visible equivalent instead,
-       falling back to the native select if the card picker isn't present. */
-    const target=nav.querySelector('.dataset-domain-option.is-active')||nav.querySelector('.dataset-domain-option')||document.getElementById('datasetGroupSelect');
-    target?.focus({preventScroll:true});
-  },350)});
+  button.addEventListener('click',()=>{
+    /* This button's own label is "اختيار جدول آخر" (choose ANOTHER TABLE) — so it must land the
+       user on the table list ("الجدول" / #datasetTableSelect), not on the section/group picker.
+       #datasetTableSelect is a real, visible native <select> (unlike #datasetGroupSelect, which
+       is hidden behind the radio-card domain picker), so it can be scrolled to and focused
+       directly. Fall back to the group picker only if a group hasn't been chosen yet, since the
+       table list stays hidden ([hidden]) until then. */
+    const tableChoice=nav.querySelector('.dataset-table-choice:not([hidden])'),tableSelect=nav.querySelector('#datasetTableSelect');
+    const scrollTarget=tableChoice||nav;
+    scrollTarget.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'});
+    setTimeout(()=>{
+      const target=(tableChoice&&tableSelect)||nav.querySelector('.dataset-domain-option.is-active')||nav.querySelector('.dataset-domain-option')||document.getElementById('datasetGroupSelect');
+      target?.focus({preventScroll:true});
+    },350);
+  });
   nav.addEventListener('change',event=>{
     if(event.target.id!=='datasetTableSelect')return;
     setTimeout(()=>{heading.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});setTimeout(()=>title.focus({preventScroll:true}),350)},80);
@@ -2661,6 +2669,30 @@ addEventListener('load',send);new ResizeObserver(send).observe(document.getEleme
 #dataTablePanel .data-table tbody tr.row-total td,
 #dataTablePanel .data-table tbody tr.row-total th[scope="row"]{
   font-weight:800!important;
+}
+</style>
+<style id="thead-sticky-header-fix">
+/* نفس علة "td:first-child" اللي عالجناها سابقًا في tbody، بس هذي المرة في thead:
+   قاعدة قديمة (`thead th:first-child`) كانت تستهدف "أول عنصر ابن" حرفيًا، وهذا صحيح
+   بالصف الأول فقط (خلية عنوان الصف rowspan="2" مثل "المنطقة الإدارية"). لكن بالجداول
+   ذات الرأس المزدوج (مجموعة + عمود فرعي، مثل "يناير — ذكور/إناث")، الصف الثاني
+   <tr> ما فيه خلية لعمود التسمية أصلاً (تاكلها rowspan)، فـ":first-child" بذاك الصف
+   يطابق أول عمود فرعي فعلي (مثل "ذكور") ويجعله sticky عند اليمين أيضًا — فيتراكب
+   فوق خلية "المنطقة الإدارية" الحقيقية أثناء التمرير الأفقي (نفس الخلل اللي ظهر
+   باللقطة: "ذكور" يطغى على عنوان عمود التسمية). الحل: نلغي التثبيت عن الصف الثاني
+   بالكامل، ونثبّت فقط خلية الصف الأول (عنوان العمود الحقيقي) بخلفية معتمة صريحة. */
+#dataTablePanel .data-table thead tr:nth-child(2) th:first-child{
+  position:static!important;
+  right:auto!important;
+  box-shadow:none!important;
+  z-index:auto!important;
+}
+#dataTablePanel .data-table thead tr:first-child th:first-child{
+  position:sticky!important;
+  right:0!important;
+  z-index:6!important;
+  background:#e8f5ee!important;
+  box-shadow:-2px 0 4px -2px rgba(36,58,50,.18)!important;
 }
 </style>
 </body>
