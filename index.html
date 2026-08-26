@@ -73,6 +73,97 @@
   #repiChartGrid.is-multiple{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.repi-chart-card .repi-chart-body{overflow:auto}
   @media(max-width:760px){.dataset-browser{grid-template-columns:1fr}.dataset-browser-count{justify-self:start}.dataset-browser select{min-height:48px}.dataset-table-choice{min-width:0}#repiChartGrid.is-multiple{grid-template-columns:1fr}.repi-chart-svg{min-width:680px}}
 </style>
+<style id="developer-formats-reliability-v11">
+#dataTablePanel .developer-formats:not(.is-open)>.developer-formats-list{display:none!important}
+#dataTablePanel .developer-formats.is-open>.developer-formats-list{display:grid!important}
+#dataTablePanel .developer-formats>summary .umrah-accordion-chevron{transition:transform .18s ease}
+#dataTablePanel .developer-formats.is-open>summary .umrah-accordion-chevron{transform:rotate(180deg)}
+</style>
+<script id="developer-formats-reliability-v11">
+(()=>{const init=()=>{
+  const details=document.querySelector('#advancedExportMenu .developer-formats');
+  const summary=details?.querySelector(':scope>summary');
+  const content=details?.querySelector(':scope>.developer-formats-list');
+  if(!details||!summary||!content||details.dataset.reliable==='true')return;
+
+  /* Isolate this nested disclosure from the page-wide accordion controller. */
+  details.dataset.reliable='true';
+  details.classList.remove('nds-newsletter-accordion');
+  details.removeAttribute('open');
+  details.classList.remove('is-open');
+  summary.setAttribute('role','button');
+  summary.setAttribute('tabindex','0');
+  summary.setAttribute('aria-expanded','false');
+  content.hidden=true;
+
+  const setOpen=open=>{
+    details.classList.toggle('is-open',open);
+    details.open=open;
+    content.hidden=!open;
+    summary.setAttribute('aria-expanded',String(open));
+  };
+  const toggle=event=>{event.preventDefault();event.stopPropagation();setOpen(!details.classList.contains('is-open'))};
+  summary.addEventListener('click',toggle);
+  summary.addEventListener('keydown',event=>{
+    if(event.key==='Enter'||event.key===' '){event.preventDefault();toggle(event)}
+  });
+
+  /* Confirm that every developer format has a live download handler. */
+  const snapshot=()=>{
+    const columns=[...document.querySelectorAll('#tableHead th')].map(cell=>cell.innerText.replace(/[↕↑↓]/g,'').trim());
+    const rows=[...document.querySelectorAll('#tableBody tr')].map(row=>[...row.cells].map(cell=>cell.innerText.trim()));
+    return{columns,rows,title:document.getElementById('tableTitle')?.textContent.trim()||'بيانات إحصاءات العمرة'};
+  };
+  const save=(text,type,name)=>{
+    const url=URL.createObjectURL(new Blob([text],{type})),link=document.createElement('a');
+    link.href=url;link.download=name;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+  };
+  const safeName=value=>value.replace(/[\\/:*?"<>|]+/g,'-').slice(0,80);
+  const fallbacks={
+    jsonExportBtn:()=>{const s=snapshot();save(JSON.stringify({meta:{title:s.title,rowCount:s.rows.length},data:s.rows.map(row=>Object.fromEntries(s.columns.map((column,index)=>[column,row[index]??''])))},null,2),'application/json;charset=utf-8',safeName(s.title)+'.json')},
+    apiExportBtn:()=>{const s=snapshot();save(JSON.stringify({status:200,format:'structured-json',meta:{title:s.title,rowCount:s.rows.length,generatedAt:new Date().toISOString()},columns:s.columns,data:s.rows},null,2),'application/json;charset=utf-8',safeName(s.title)+'-structured.json')},
+    sdmxExportBtn:()=>{const s=snapshot(),quote=value=>'"'+String(value??'').replaceAll('"','""')+'"',csv='\ufeff'+[['STRUCTURE','ACTION',...s.columns],...s.rows.map(row=>['dataflow','I',...row])].map(row=>row.map(quote).join(',')).join('\r\n');save(csv,'text/csv;charset=utf-8',safeName(s.title)+'-sdmx.csv')}
+  };
+  Object.entries(fallbacks).forEach(([id,handler])=>{
+    const button=document.getElementById(id);if(!button)return;
+    button.addEventListener('click',event=>{
+      if(typeof button.onclick==='function')return;
+      event.preventDefault();handler();window.showDownloadToast?.('تم تجهيز الملف وبدء تنزيله');
+    });
+  });
+};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init()})();
+</script>
+<style id="pagination-rtl-alignment-v11">
+#main-content #dataTablePanel .pagination{
+  display:flex!important;
+  direction:rtl!important;
+  justify-content:flex-start!important;
+  align-items:flex-end!important;
+  width:100%!important;
+}
+#main-content #dataTablePanel .page-size{
+  order:1!important;
+  flex:0 0 auto!important;
+  width:auto!important;
+  min-width:190px!important;
+  margin:0!important;
+  margin-inline-end:auto!important;
+  align-self:flex-end!important;
+  text-align:right!important;
+}
+#main-content #dataTablePanel .page-size .nds-form-header,
+#main-content #dataTablePanel .page-size .nds-label{text-align:right!important;justify-content:flex-start!important}
+#main-content #dataTablePanel .pager{
+  order:2!important;
+  flex:0 1 auto!important;
+  justify-content:flex-end!important;
+}
+@media(max-width:600px){
+  #main-content #dataTablePanel .pagination{align-items:stretch!important;gap:10px!important}
+  #main-content #dataTablePanel .page-size{width:min(100%,230px)!important;min-width:0!important;align-self:flex-start!important;margin-inline-end:auto!important}
+  #main-content #dataTablePanel .pager{width:auto!important;max-width:100%!important;align-self:flex-start!important}
+}
+</style>
 <style id="umrah-statistical-chart-table-enhancements">
   .data-table thead .column-groups th.column-group{padding:10px 8px;color:#145a3f;background:#eaf5ef;border-bottom:1px solid #bfd8cc;text-align:center;font-weight:700}
   .data-table tbody tr:nth-child(even){background:#fafcfa}.data-table tbody tr:hover{background:#eef8f3}.data-table tbody tr.row-total{background:#eaf5ef;font-weight:700}
@@ -140,7 +231,7 @@ body.chart-modal-open,body.repi-modal-open{overflow:hidden!important}
 .data-table tbody tr:last-child td{border-bottom:0!important}.data-table tbody tr:last-child td:first-child{border-radius:0 0 9px 0!important}
 #dataTablePanel .toolbar,#dataTablePanel .toolbar-actions{overflow:visible!important}
 #dataTablePanel .advanced-export{position:relative!important;display:block!important;margin:0!important;padding:0!important}
-#dataTablePanel .advanced-export>summary{list-style:none!important}#dataTablePanel .advanced-export>summary::-webkit-details-marker{display:none!important}
+#dataTablePanel .advanced-export-trigger{list-style:none!important}#dataTablePanel .advanced-export-trigger::-webkit-details-marker{display:none!important}
 #dataTablePanel .advanced-export-menu{display:none!important;position:absolute!important;z-index:1000!important;inset-block-start:calc(100% + 8px)!important;inset-inline-end:0!important;box-sizing:border-box!important;width:min(430px,calc(100vw - 48px))!important;max-height:min(650px,75vh)!important;padding:14px!important;overflow-y:auto!important;color:#30453d!important;background:#fff!important;border:1px solid #cbd7d1!important;border-radius:12px!important;box-shadow:0 18px 45px rgba(22,61,48,.2)!important;text-align:right!important}
 #dataTablePanel .advanced-export[open]>.advanced-export-menu{display:block!important}
 #dataTablePanel .advanced-export-head{display:flex!important;flex-direction:column!important;gap:4px!important;margin:0 0 12px!important;padding:0 0 11px!important;border-bottom:1px solid #e0e7e3!important}
@@ -216,7 +307,7 @@ body.chart-modal-open,body.repi-modal-open{overflow:hidden!important}
  #dataTablePanel .toolbar-actions-label{grid-column:1/-1!important}
  #dataTablePanel .toolbar-btn{box-sizing:border-box!important;justify-content:center!important;width:100%!important;min-width:0!important;min-height:44px!important;padding:8px!important;white-space:normal!important}
  #dataTablePanel .advanced-export{grid-column:1/-1!important;width:100%!important}
- #dataTablePanel .advanced-export>summary{width:100%!important}
+ #dataTablePanel .advanced-export-trigger{width:100%!important}
  .table-heading{box-sizing:border-box!important;width:100%!important;padding:14px 12px 9px!important;gap:8px!important}
  .table-heading h3{overflow-wrap:anywhere!important;line-height:1.55!important}
  .table-heading .results{width:100%!important;font-size:12px!important}
@@ -258,6 +349,139 @@ body.chart-modal-open,body.repi-modal-open{overflow:hidden!important}
  #datasetChartMount .repi-chart-svg text{font-size:15px!important}
 }
 </style>
+
+<style id="advanced-export-v5-styles">
+#dataTablePanel .advanced-export-trigger{list-style:none!important}
+#dataTablePanel .advanced-export-menu[hidden]{display:none!important}
+#dataTablePanel .advanced-export.is-open>.advanced-export-menu{display:block!important}
+#dataTablePanel .advanced-export.is-open .advanced-export-chevron{transform:rotate(180deg)!important}
+</style>
+
+<style id="view-tab-stability-fix">
+#main-content .view-tab,
+#main-content .view-tab.active,
+#main-content .view-tab[aria-selected="true"],
+#main-content .view-tab:hover,
+#main-content .view-tab:focus-visible{
+  font-family:"IBM Plex Sans Arabic","IBM Plex Sans",Arial,sans-serif!important;
+  font-size:16px!important;
+  font-weight:700!important;
+  line-height:1.45!important;
+  letter-spacing:normal!important;
+}
+#main-content .view-tab{
+  color:#374151!important;
+  background:#fff!important;
+  border-bottom:3px solid transparent!important;
+}
+#main-content .view-tab:hover{
+  color:#374151!important;
+  background:#f7f8f8!important;
+  border-bottom-color:#9ca3af!important;
+}
+#main-content .view-tab.active,
+#main-content .view-tab[aria-selected="true"]{
+  color:#374151!important;
+  background:#fff!important;
+  border-bottom-color:#1b8354!important;
+  box-shadow:none!important;
+}
+#main-content .view-tab .nds-label{
+  font:inherit!important;
+  color:inherit!important;
+}
+#main-content .view-tab.active::after,
+#main-content .view-tab[aria-selected="true"]::after{
+  display:none!important;
+  content:none!important;
+}
+@media(max-width:600px){
+  #main-content .view-tab,
+  #main-content .view-tab.active,
+  #main-content .view-tab[aria-selected="true"]{font-size:13px!important;font-weight:700!important}
+}
+</style>
+
+<style id="view-tab-final-lock">
+/* Keep the two main tabs typographically identical in every interaction state. */
+#newsletterTabs #dataTableTab,
+#newsletterTabs #methodologyTab,
+#newsletterTabs #dataTableTab:hover,
+#newsletterTabs #methodologyTab:hover,
+#newsletterTabs #dataTableTab:focus,
+#newsletterTabs #methodologyTab:focus,
+#newsletterTabs #dataTableTab:focus-visible,
+#newsletterTabs #methodologyTab:focus-visible,
+#newsletterTabs #dataTableTab.active,
+#newsletterTabs #methodologyTab.active,
+#newsletterTabs #dataTableTab[aria-selected="true"],
+#newsletterTabs #methodologyTab[aria-selected="true"],
+#newsletterTabs #dataTableTab[aria-selected="false"],
+#newsletterTabs #methodologyTab[aria-selected="false"]{
+  font-family:"IBM Plex Sans Arabic","IBM Plex Sans",Arial,sans-serif!important;
+  font-size:16px!important;
+  font-style:normal!important;
+  font-weight:700!important;
+  font-stretch:normal!important;
+  font-variant:normal!important;
+  line-height:1.45!important;
+  letter-spacing:0!important;
+  text-decoration:none!important;
+  text-shadow:none!important;
+  color:#374151!important;
+  -webkit-text-fill-color:#374151!important;
+  background:#fff!important;
+  box-shadow:none!important;
+  transform:none!important;
+  opacity:1!important;
+  transition:border-color .15s ease, background-color .15s ease!important;
+}
+#newsletterTabs #dataTableTab .nds-label,
+#newsletterTabs #methodologyTab .nds-label{
+  font-family:inherit!important;
+  font-size:inherit!important;
+  font-style:inherit!important;
+  font-weight:inherit!important;
+  line-height:inherit!important;
+  letter-spacing:inherit!important;
+  color:#374151!important;
+  -webkit-text-fill-color:#374151!important;
+  opacity:1!important;
+  transform:none!important;
+}
+#newsletterTabs #dataTableTab .view-tab-icon,
+#newsletterTabs #methodologyTab .view-tab-icon,
+#newsletterTabs #dataTableTab .view-tab-icon svg,
+#newsletterTabs #methodologyTab .view-tab-icon svg{
+  color:#374151!important;
+  stroke:#374151!important;
+  opacity:1!important;
+  transform:none!important;
+}
+#newsletterTabs #dataTableTab,
+#newsletterTabs #methodologyTab{border-bottom:3px solid transparent!important;}
+#newsletterTabs #dataTableTab.active,
+#newsletterTabs #methodologyTab.active,
+#newsletterTabs #dataTableTab[aria-selected="true"],
+#newsletterTabs #methodologyTab[aria-selected="true"]{border-bottom-color:#1b8354!important;}
+#newsletterTabs #dataTableTab:hover,
+#newsletterTabs #methodologyTab:hover{border-bottom-color:#9ca3af!important;}
+#newsletterTabs #dataTableTab.active:hover,
+#newsletterTabs #methodologyTab.active:hover,
+#newsletterTabs #dataTableTab[aria-selected="true"]:hover,
+#newsletterTabs #methodologyTab[aria-selected="true"]:hover{border-bottom-color:#1b8354!important;}
+#newsletterTabs #dataTableTab::after,
+#newsletterTabs #methodologyTab::after{display:none!important;content:none!important;}
+@media(max-width:600px){
+  #newsletterTabs #dataTableTab,
+  #newsletterTabs #methodologyTab,
+  #newsletterTabs #dataTableTab.active,
+  #newsletterTabs #methodologyTab.active,
+  #newsletterTabs #dataTableTab[aria-selected="true"],
+  #newsletterTabs #methodologyTab[aria-selected="true"]{font-size:13px!important;font-weight:700!important;}
+}
+</style>
+
 </head>
 <body>
 <script>window.GASTAT_EXPORT_LOGO="data:image/png;base64,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";</script>
@@ -386,9 +610,9 @@ body.chart-modal-open,body.repi-modal-open{overflow:hidden!important}
         <div class="toolbar-actions"><span class="toolbar-actions-label">إجراءات البيانات</span>
           <button class="toolbar-btn toolbar-btn-secondary" id="resetBtn" type="button" title="إعادة ضبط الفلاتر"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4v6h6M5.4 15a7 7 0 1 0 .7-7.2L4 10"/></svg><span>إعادة ضبط</span></button>
           <button class="toolbar-btn toolbar-btn-secondary" id="copyViewLinkBtn" type="button" title="نسخ رابط يحفظ التبويب والفلاتر المختارة"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1.1 1.1M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1.1-1.1"/></svg><span>نسخ رابط العرض</span></button>
-          <details class="advanced-export" id="advancedExport">
-            <summary class="toolbar-btn toolbar-btn-excel" aria-label="فتح خيارات تنزيل البيانات"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 5-5m-5 5-5-5M5 21h14"/></svg><span>تنزيل البيانات</span><small id="filteredDownloadCount"></small><svg class="advanced-export-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg></summary>
-            <div class="advanced-export-menu">
+          <div class="advanced-export" id="advancedExport">
+            <button class="toolbar-btn toolbar-btn-excel advanced-export-trigger" id="advancedExportTrigger" type="button" aria-label="فتح خيارات تنزيل البيانات" aria-expanded="false" aria-controls="advancedExportMenu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 5-5m-5 5-5-5M5 21h14"/></svg><span>تنزيل البيانات</span><small id="filteredDownloadCount"></small><svg class="advanced-export-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg></button>
+            <div class="advanced-export-menu" id="advancedExportMenu" hidden>
               <div class="advanced-export-head"><strong>تنزيل بيانات الجدول الحالي</strong><span>الجدول: <b id="developerDatasetName">أبرز مؤشرات إحصاءات العمرة</b> · <b id="developerRowCount">6</b> صفوف مطابقة</span></div>
               <div class="advanced-export-primary" aria-label="تنزيل النتائج الحالية">
                 <button class="advanced-export-option advanced-export-option-featured" id="filteredExcelBtn" type="button"><span class="advanced-export-code">XLS</span><span><strong>Excel مفلتر</strong><small>النتائج الحالية + ورقة معلومات</small></span><svg class="advanced-export-download" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 5-5m-5 5-5-5M5 21h14"/></svg></button>
@@ -402,10 +626,10 @@ body.chart-modal-open,body.repi-modal-open{overflow:hidden!important}
                   <button class="advanced-export-option" id="sdmxExportBtn" type="button"><span class="advanced-export-code">CSV</span><span><strong>SDMX-CSV</strong><small>صيغة تبادل للبيانات الإحصائية</small></span><svg class="advanced-export-download" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 5-5m-5 5-5-5M5 21h14"/></svg></button>
                 </div>
               </details>
-              <a class="advanced-export-option advanced-export-official" id="officialExcelDownload" href="Umrah%20Statistics%20Q1%202026-AR.xlsx" download><span class="advanced-export-code">XLSX</span><span><strong>Excel — الملف الرسمي الكامل</strong><small>المصدر الأصلي بجميع الجداول والبيانات</small></span><svg class="advanced-export-download" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 5-5m-5 5-5-5M5 21h14"/></svg></a>
-              <p class="advanced-export-note">تُنشأ صيغ النتائج الحالية داخل المتصفح، أما الملف الرسمي الكامل فيُنزل من المصدر.</p>
+              <a class="advanced-export-option advanced-export-official" id="officialExcelDownload" href="Umrah%20Statistics%20Q1%202026-AR.xlsx" download><span class="advanced-export-code">XLSX</span><span><strong>Excel — جميع جداول النشرة</strong><small>ملف مجمّع يُنشأ من البيانات المضمنة في الصفحة</small></span><svg class="advanced-export-download" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 5-5m-5 5-5-5M5 21h14"/></svg></a>
+              <p class="advanced-export-note">تُنشأ جميع صيغ التنزيل مباشرة داخل المتصفح من بيانات النشرة المضمنة في الصفحة.</p>
             </div>
-          </details>
+          </div>
         </div>
       </div>
       <div class="table-heading"><div><h3 id="tableTitle"></h3><p id="tableDescription"></p></div><div class="results" id="resultsCount" role="status" aria-live="polite" aria-atomic="true"></div></div>
@@ -414,7 +638,7 @@ body.chart-modal-open,body.repi-modal-open{overflow:hidden!important}
       
       <div class="table-wrap" tabindex="0" role="region" aria-labelledby="tableTitle" aria-describedby="tableDescription tableKeyboardHelp"><table class="data-table"><caption class="sr-only" id="tableCaption">بيانات إحصاءات العمرة للربع الأول 2026</caption><thead id="tableHead"></thead><tbody id="tableBody"></tbody></table></div>
       <p class="note">يمكن البحث والتصفية والترتيب، ثم تنزيل النتائج الحالية فقط بالصيغ المتاحة في شريط الإجراءات.</p>
-      <div class="pagination"><div class="page-size"><label for="pageSize">عدد الصفوف في الصفحة</label><select id="pageSize"><option selected>10</option><option>20</option><option>50</option><option>100</option></select></div><div class="pager" id="pager"></div></div>
+      <div class="pagination selection-gated-pagination" hidden aria-hidden="true"><div class="page-size"><label for="pageSize">عدد الصفوف في الصفحة</label><select id="pageSize"><option selected>10</option><option>20</option><option>50</option><option>100</option></select></div><div class="pager" id="pager"></div></div>
       <section class="dataset-chart-section" id="datasetChartSection" aria-labelledby="datasetChartHeading" hidden>
         <div class="dataset-chart-section-head"><div><span>الرسم المرتبط بالجدول</span><h3 id="datasetChartHeading">العرض البياني للبيانات الحالية</h3></div><p>يتغير الرسم تلقائيًا عند اختيار جدول آخر.</p></div>
         <div id="datasetChartMount"><div class="repi-chart-grid" id="repiChartGrid"></div></div>
@@ -519,6 +743,138 @@ body.chart-modal-open,body.repi-modal-open{overflow:hidden!important}
   support.remove();
 })();
 </script>
+
+<style id="ux-spacing-polish-v11">
+/* Final spacing pass: keep related controls visually grouped and remove dead space. */
+#dataTablePanel{
+  --ux-space-1:6px;
+  --ux-space-2:10px;
+  --ux-space-3:14px;
+  --ux-space-4:18px;
+}
+
+/* 1. Dataset and table selection are one compact task. */
+#dataTablePanel .dataset-nav{
+  box-sizing:border-box!important;
+  width:calc(100% - 48px)!important;
+  margin:12px 24px 0!important;
+  padding:0!important;
+}
+#datasetNav .dataset-browser{
+  gap:var(--ux-space-2)!important;
+  padding:14px 16px!important;
+  border-radius:12px!important;
+}
+#datasetNav .dataset-domain-panel,
+#datasetNav .dataset-domain-options{gap:8px!important}
+#datasetNav .dataset-domain-heading{margin:0!important}
+#datasetNav .dataset-domain-option{
+  min-height:44px!important;
+  padding:8px 12px!important;
+}
+#datasetNav .dataset-table-choice{
+  width:100%!important;
+  max-width:none!important;
+  padding:0!important;
+  gap:5px!important;
+}
+#datasetNav #datasetTableSelect{
+  min-height:44px!important;
+  height:44px!important;
+}
+#datasetNav .dataset-browser-count{
+  margin:0!important;
+  padding:5px 10px!important;
+}
+
+/* 2. Filters and actions form a single, balanced toolbar. */
+#dataTablePanel .toolbar{
+  box-sizing:border-box!important;
+  width:calc(100% - 48px)!important;
+  margin:12px 24px 0!important;
+  padding:14px 16px!important;
+  gap:12px!important;
+  align-items:end!important;
+  border-radius:12px!important;
+}
+#dataTablePanel .toolbar .field,
+#dataTablePanel .toolbar .nds-form-container{gap:5px!important;margin:0!important}
+#dataTablePanel .toolbar .nds-form-header{min-height:20px!important;margin:0!important;padding:0!important}
+#dataTablePanel .toolbar .nds-form-control{min-height:44px!important}
+#dataTablePanel .toolbar .nds-input,
+#dataTablePanel .toolbar .control{min-height:44px!important;height:44px!important}
+#dataTablePanel .toolbar-actions{
+  align-self:end!important;
+  gap:8px!important;
+  margin:0!important;
+}
+
+/* 3. Pull the table identity and actions up directly below the toolbar. */
+#dataTablePanel .table-heading{
+  min-height:0!important;
+  margin:0!important;
+  padding:16px 24px 8px!important;
+  gap:14px!important;
+  align-items:center!important;
+}
+#dataTablePanel .table-heading>div:first-child{min-width:0!important}
+#dataTablePanel .table-heading h3{
+  margin:0!important;
+  font-size:clamp(20px,2vw,27px)!important;
+  line-height:1.45!important;
+}
+#dataTablePanel .table-heading p{margin:3px 0 0!important;line-height:1.55!important}
+#dataTablePanel .table-heading-actions{
+  flex:0 0 auto!important;
+  gap:8px!important;
+  padding:0!important;
+  border:0!important;
+}
+#dataTablePanel .results{
+  margin:0!important;
+  padding:7px 11px!important;
+  border-radius:999px!important;
+  background:#f3f4f6!important;
+  line-height:1.35!important;
+}
+#dataTablePanel .change-dataset-btn{margin:0!important}
+
+/* Keep secondary content attached to the table instead of floating in whitespace. */
+#dataTablePanel .dataset-chart-toggle-row{margin:6px 24px 10px!important}
+#dataTablePanel .table-definitions{margin:8px 24px 10px!important}
+#dataTablePanel .table-wrap{margin:0 24px!important}
+#dataTablePanel .table-source-note{margin:8px 24px 0!important}
+#dataTablePanel>.note{margin:8px 24px!important}
+#dataTablePanel .pagination{padding:12px 24px 18px!important}
+
+@media (max-width:900px){
+  #dataTablePanel .toolbar{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}
+  #dataTablePanel .toolbar .field.search{grid-column:1/-1!important}
+  #dataTablePanel .toolbar-actions{grid-column:1/-1!important;justify-content:flex-start!important}
+  #dataTablePanel .table-heading{align-items:flex-start!important}
+}
+
+@media (max-width:600px){
+  #dataTablePanel .dataset-nav,
+  #dataTablePanel .toolbar{width:calc(100% - 20px)!important;margin-inline:10px!important}
+  #datasetNav .dataset-browser{padding:11px!important}
+  #dataTablePanel .toolbar{grid-template-columns:1fr!important;padding:11px!important;gap:9px!important}
+  #dataTablePanel .toolbar .field.search,
+  #dataTablePanel .toolbar-actions{grid-column:auto!important}
+  #dataTablePanel .toolbar-actions{display:grid!important;grid-template-columns:1fr 1fr!important;width:100%!important}
+  #dataTablePanel .toolbar-actions>*{min-width:0!important;width:100%!important}
+  #dataTablePanel .table-heading{padding:14px 14px 8px!important;gap:9px!important}
+  #dataTablePanel .table-heading h3{font-size:20px!important}
+  #dataTablePanel .table-heading-actions{width:100%!important;justify-content:space-between!important}
+  #dataTablePanel .results{white-space:normal!important;font-size:12px!important}
+  #dataTablePanel .dataset-chart-toggle-row{margin:6px 14px 10px!important}
+  #dataTablePanel .table-definitions{margin:8px 14px 10px!important}
+  #dataTablePanel .table-wrap{margin-inline:14px!important}
+  #dataTablePanel .table-source-note,
+  #dataTablePanel>.note{margin-inline:14px!important}
+  #dataTablePanel .pagination{padding:10px 14px 16px!important}
+}
+</style>
 <script>window.NEWSLETTER_DATA={"publicationType":"umrah","publicationTitle":"إحصاءات العمرة للربع الأول 2026","period":"الربع الأول 2026","source":"Umrah Statistics Q1 2026-AR.xlsx","groups":["أبرز المؤشرات","إحصاءات العمرة","زيارة المدينة المنورة"],"datasets":[{"id":"0.0","sheet":"0.0","group":"أبرز المؤشرات","shortTitle":"0.0 — أبرز مؤشرات إحصاءات العمرة","title":"أبرز مؤشرات إحصاءات العمرة للربع الأول من عام 2026","description":"الربع الأول 2026 — جدول (0.0)","columns":["المؤشر","البيان"],"filters":["المؤشر"],"rows":[["عدد معتمري الداخل",9464496],["عدد معتمري الخارج",5769271],["إجمالي المعتمرين",15233767],["عدد زوار المدينة المنورة من الداخل",1984193],["عدد زوار المدينة المنورة من الخارج",3741460],["إجمالي زوار المدينة المنورة",5725653]],"percentColumns":[],"sourceNotes":[],"notes":[]},{"id":"1.0","sheet":"1.0","group":"إحصاءات العمرة","shortTitle":"1.0 — إجمالي معتمري الداخل والخارج حسب الجنس","title":"إجمالي معتمري الداخل والخارج حسب الجنس للربع الأول لعام 2026","description":"الربع الأول 2026 — جدول (1.0)","columns":["نوع المعتمر","ذكور","إناث","الإجمالي"],"filters":["نوع المعتمر"],"rows":[["معتمري الداخل",6265810,3198686,9464496],["معتمري الخارج",2777904,2991367,5769271],["الإجمالي",9043714,6190053,15233767]],"percentColumns":[],"sourceNotes":["المصدر : برنامج خدمة ضيوف الرحمن والهيئة العامة للإحصاء - مسح العمرة وزيارة المدينة المنورة."],"notes":[]},{"id":"1.1","sheet":"1.1","group":"إحصاءات العمرة","shortTitle":"1.1 — إجمالي المعتمرين من الداخل حسب الجنس والجنسية وفئات العمر","title":"إجمالي المعتمرين من الداخل حسب الجنس والجنسية وفئات العمر للربع الأول لعام 2026","description":"الربع الأول 2026 — جدول (1.1)","columns":["فئــات العمـــر","سعودي - ذكور","سعودي - إناث","سعودي - الإجمالي","غير سعودي - ذكور","غير سعودي - إناث","غير سعودي - الإجمالي","الإجمالي - ذكور","الإجمالي - إناث","الإجمالي"],"filters":["فئــات العمـــر"],"rows":[["0 - 14",510437,485553,995990,204579,151980,356559,715016,637533,1352549],["15 - 24",398600,391911,790511,367809,157566,525375,766409,549477,1315886],["25 -34",385417,389491,774908,1300861,315828,1616689,1686278,705319,2391597],["35 - 44",418741,368060,786801,1228730,281145,1509875,1647471,649205,2296676],["45 - 54",294193,247939,542132,583887,115259,699146,878080,363198,1241278],["55 - 64",182978,156806,339784,222669,36693,259362,405647,193499,599146],["65+",85636,81066,166702,81273,19389,100662,166909,100455,267364],["الإجمالي",2276002,2120826,4396828,3989808,1077860,5067668,6265810,3198686,9464496]],"percentColumns":[],"sourceNotes":["المصدر : الهيئة العامة للإحصاء - مسح العمرة وزيارة المدينة المنورة."],"notes":[]},{"id":"1.2","sheet":"1.2","group":"إحصاءات العمرة","shortTitle":"1.2 — توزيع المعتمرين من الداخل حسب الشهر والمناطق الإدارية والجنس","title":"توزيع المعتمرين من الداخل حسب الشهر والمناطق الإدارية والجنس للربع الأول لعام 2026","description":"الربع الأول 2026 — جدول (1.2)","columns":["المنطقة الإدارية","يناير - ذكور","يناير - إناث","يناير - الإجمالي","فبراير - ذكور","فبراير - إناث","فبراير - الإجمالي","مارس - ذكور","مارس - إناث","مارس - الإجمالي","الإجمالي - ذكور","الإجمالي - إناث","الإجمالي"],"filters":["المنطقة الإدارية"],"rows":[["الرياض",154471,86877,241348,578472,259451,837923,624412,322346,946758,1357355,668674,2026029],["مكة المكرمة",294229,139668,433897,1505474,833950,2339424,904657,388691,1293348,2704360,1362309,4066669],["المدينة المنورة",92000,49806,141806,281348,153211,434559,261400,110922,372322,634748,313939,948687],["القصيم",20213,10517,30730,52158,39739,91897,20111,9211,29322,92482,59467,151949],["المنطقة الشرقية",94515,43680,138195,97644,52117,149761,196233,41561,237794,388392,137358,525750],["عسير",37597,31149,68746,88444,44232,132676,127123,70955,198078,253164,146336,399500],["تبوك",20161,7809,27970,45352,31193,76545,59729,25624,85353,125242,64626,189868],["حائل",18490,6564,25054,33885,13896,47781,24109,16062,40171,76484,36522,113006],["الحدود الشمالية",5965,2271,8236,5556,2195,7751,19813,5918,25731,31334,10384,41718],["جازان",58972,37382,96354,182430,98464,280894,90774,77877,168651,332176,213723,545899],["نجران",29259,29495,58754,49807,36367,86174,52096,26421,78517,131162,92283,223445],["الباحة",6222,3696,9918,18744,11415,30159,49143,24007,73150,74109,39118,113227],["الجوف",12136,8199,20335,20647,22379,43026,32019,23369,55388,64802,53947,118749],["الإجمالي",844230,457113,1301343,2959961,1598609,4558570,2461619,1142964,3604583,6265810,3198686,9464496]],"percentColumns":[],"sourceNotes":["المصدر : الهيئة العامة للإحصاء - مسح العمرة وزيارة المدينة المنورة."],"notes":[]},{"id":"1.3","sheet":"1.3","group":"إحصاءات العمرة","shortTitle":"1.3 — توزيع المعتمرين السعوديين من الداخل حسب الشهر والمناطق الإدارية والجنس","title":"توزيع المعتمرين السعوديين من الداخل حسب الشهر والمناطق الإدارية والجنس للربع الأول لعام 2026","description":"الربع الأول 2026 — جدول (1.3)","columns":["المنطقة الإدارية","يناير - ذكور","يناير - إناث","يناير - الإجمالي","فبراير - ذكور","فبراير - إناث","فبراير - الإجمالي","مارس - ذكور","مارس - إناث","مارس - الإجمالي","الإجمالي - ذكور","الإجمالي - إناث","الإجمالي"],"filters":["المنطقة الإدارية"],"rows":[["الرياض",52885,49730,102615,198997,159659,358656,238518,197032,435550,490400,406421,896821],["مكة المكرمة",103583,96002,199585,556513,499140,1055653,222492,253379,475871,882588,848521,1731109],["المدينة المنورة",30861,30446,61307,119324,128056,247380,71782,68924,140706,221967,227426,449393],["القصيم",10545,8294,18839,32643,29509,62152,13352,9046,22398,56540,46849,103389],["المنطقة الشرقية",30788,31910,62698,18926,23294,42220,33035,18082,51117,82749,73286,156035],["عسير",20306,23662,43968,55176,43861,99037,65960,59220,125180,141442,126743,268185],["تبوك",6917,5848,12765,22466,25259,47725,25193,21752,46945,54576,52859,107435],["حائل",8548,5623,14171,10353,6764,17117,9744,12151,21895,28645,24538,53183],["الحدود الشمالية",2518,1345,3863,1436,1268,2704,4456,3301,7757,8410,5914,14324],["جازان",29079,27317,56396,66615,66574,133189,56858,58244,115102,152552,152135,304687],["نجران",21984,25589,47573,27260,21628,48888,27120,22707,49827,76364,69924,146288],["الباحة",5134,3696,8830,9983,9903,19886,23101,21793,44894,38218,35392,73610],["الجوف",6158,8199,14357,15379,21909,37288,20014,20710,40724,41551,50818,92369],["الإجمالي",329306,317661,646967,1135071,1036824,2171895,811625,766341,1577966,2276002,2120826,4396828]],"percentColumns":[],"sourceNotes":["المصدر : الهيئة العامة للإحصاء - مسح العمرة وزيارة المدينة المنورة."],"notes":[]},{"id":"1.4","sheet":"1.4","group":"إحصاءات العمرة","shortTitle":"1.4 — توزيع المعتمرين غير السعوديين من الداخل حسب الشهر والمناطق الإدارية والجنس","title":"توزيع المعتمرين غير السعوديين من الداخل حسب الشهر والمناطق الإدارية والجنس للربع الأول لعام 2026","description":"الربع الأول 2026 — جدول (1.4)","columns":["المنطقة الإدارية","يناير - ذكور","يناير - إناث","يناير - الإجمالي","فبراير - ذكور","فبراير - إناث","فبراير - الإجمالي","مارس - ذكور","مارس - إناث","مارس - الإجمالي","الإجمالي - ذكور","الإجمالي - إناث","الإجمالي"],"filters":["المنطقة الإدارية"],"rows":[["الرياض",101586,37147,138733,379475,99792,479267,385894,125314,511208,866955,262253,1129208],["مكة المكرمة",190646,43666,234312,948961,334810,1283771,682165,135312,817477,1821772,513788,2335560],["المدينة المنورة",61139,19360,80499,162024,25155,187179,189618,41998,231616,412781,86513,499294],["القصيم",9668,2223,11891,19515,10230,29745,6759,165,6924,35942,12618,48560],["المنطقة الشرقية",63727,11770,75497,78718,28823,107541,163198,23479,186677,305643,64072,369715],["عسير",17291,7487,24778,33268,371,33639,61163,11735,72898,111722,19593,131315],["تبوك",13244,1961,15205,22886,5934,28820,34536,3872,38408,70666,11767,82433],["حائل",9942,941,10883,23532,7132,30664,14365,3911,18276,47839,11984,59823],["الحدود الشمالية",3447,926,4373,4120,927,5047,15357,2617,17974,22924,4470,27394],["جازان",29893,10065,39958,115815,31890,147705,33916,19633,53549,179624,61588,241212],["نجران",7275,3906,11181,22547,14739,37286,24976,3714,28690,54798,22359,77157],["الباحة",1088,0,1088,8761,1512,10273,26042,2214,28256,35891,3726,39617],["الجوف",5978,0,5978,5268,470,5738,12005,2659,14664,23251,3129,26380],["الإجمالي",514924,139452,654376,1824890,561785,2386675,1649994,376623,2026617,3989808,1077860,5067668]],"percentColumns":[],"sourceNotes":["المصدر : الهيئة العامة للإحصاء - مسح العمرة وزيارة المدينة المنورة."],"notes":[]},{"id":"1.5","sheet":"1.5","group":"إحصاءات العمرة","shortTitle":"1.5 — المعتمرون من الداخل حسب عدد مرات العمرة و الشهر والجنس","title":"المعتمرون من الداخل حسب عدد مرات العمرة و الشهر والجنس للربع الأول لعام 2026","description":"الربع الأول 2026 — جدول (1.5)","columns":["الشهر","مرة واحدة - ذكور","مرة واحدة - إناث","مرة واحدة - الإجمالي","أكثر من مرة - ذكور","أكثر من مرة - إناث","أكثر من مرة - الإجمالي","الإجمالي - ذكور","الإجمالي - إناث","الإجمالي"],"filters":["الشهر"],"rows":[["يناير",806438,446861,1253299,37792,10252,48044,844230,457113,1301343],["فبراير",2885521,1566296,4451817,74440,32313,106753,2959961,1598609,4558570],["مارس",2245890,1075102,3320992,215729,67862,283591,2461619,1142964,3604583],["الإجمالي",5937849,3088259,9026108,327961,110427,438388,6265810,3198686,9464496]],"percentColumns":[],"sourceNotes":["المصدر : الهيئة العامة للإحصاء - مسح العمرة وزيارة المدينة المنورة."],"notes":[]},{"id":"1.6","sheet":"1.6","group":"إحصاءات العمرة","shortTitle":"1.6 — المعتمرون السعوديين من الداخل حسب عدد مرات العمرة و الشهر والجنس","title":"المعتمرون السعوديين من الداخل حسب عدد مرات العمرة و الشهر والجنس للربع الأول لعام 2026","description":"الربع الأول 2026 — جدول (1.6)","columns":["الشهر","مرة واحدة - ذكور","مرة واحدة - إناث","مرة واحدة - الإجمالي","أكثر من مرة - ذكور","أكثر من مرة - إناث","أكثر من مرة - الإجمالي","الإجمالي - ذكور","الإجمالي - إناث","الإجمالي"],"filters":["الشهر"],"rows":[["يناير",322710,313937,636647,6596,3724,10320,329306,317661,646967],["فبراير",1100107,1007531,2107638,34964,29293,64257,1135071,1036824,2171895],["مارس",772185,739625,1511810,39440,26716,66156,811625,766341,1577966],["الإجمالي",2195002,2061093,4256095,81000,59733,140733,2276002,2120826,4396828]],"percentColumns":[],"sourceNotes":["المصدر : الهيئة العامة للإحصاء - مسح العمرة وزيارة المدينة المنورة."],"notes":[]},{"id":"1.7","sheet":"1.7","group":"إحصاءات العمرة","shortTitle":"1.7 — المعتمرون غير السعوديين من الداخل حسب عدد مرات العمرة و الشهر والجنس","title":"المعتمرون غير السعوديين من الداخل حسب عدد مرات العمرة و الشهر والجنس للربع الأول لعام 2026","description":"الربع الأول 2026 — جدول (1.7)","columns":["الشهر","مرة واحدة - ذكور","مرة واحدة - إناث","مرة واحدة - الإجمالي","أكثر من مرة - ذكور","أكثر من مرة - إناث","أكثر من مرة - الإجمالي","الإجمالي - ذكور","الإجمالي - إناث","الإجمالي"],"filters":["الشهر"],"rows":[["يناير",483728,132924,616652,31196,6528,37724,514924,139452,654376],["فبراير",1785414,558765,2344179,39476,3020,42496,1824890,561785,2386675],["مارس",1473705,335477,1809182,176289,41146,217435,1649994,376623,2026617],["الإجمالي",3742847,1027166,4770013,246961,50694,297655,3989808,1077860,5067668]],"percentColumns":[],"sourceNotes":["المصدر : الهيئة العامة للإحصاء - مسح العمرة وزيارة المدينة المنورة."],"notes":[]},{"id":"1.8","sheet":"1.8","group":"إحصاءات العمرة","shortTitle":"1.8 — توزيع المعتمرين من الداخل حسب الشهر ونوع الرحلة","title":"توزيع المعتمرين من الداخل حسب الشهر ونوع الرحلة للربع الأول لعام 2026","description":"الربع الأول 2026 — جدول (1.8)","columns":["نوع الرحلة","يناير","فبراير","مارس","الإجمالي"],"filters":["نوع الرحلة"],"rows":[["فردية",254313,628544,741262,1624119],["مع العائلة",959543,3654810,2524442,7138795],["مع الأصدقاء",87487,275216,338879,701582],["الإجمالي",1301343,4558570,3604583,9464496]],"percentColumns":[],"sourceNotes":["المصدر : الهيئة العامة للإحصاء - مسح العمرة وزيارة المدينة المنورة."],"notes":[]},{"id":"1.9","sheet":"1.9","group":"إحصاءات العمرة","shortTitle":"1.9 — توزيع المعتمرين من الداخل حسب الشهر وتحمل التكاليف","title":"توزيع المعتمرين من الداخل حسب الشهر وتحمل التكاليف للربع الأول لعام 2026","description":"الربع الأول 2026 — جدول (1.9)","columns":["تحمل التكاليف","يناير","فبراير","مارس","الإجمالي"],"filters":["تحمل التكاليف"],"rows":[["حساب شخصي أو الأسرة",1267374,4393451,3439493,9100318],["جمعية خيرية",25643,156313,162854,344810],["جهات حكومية",0,4194,2236,6430],["أخرى",8326,4612,0,12938],["الإجمالي",1301343,4558570,3604583,9464496]],"percentColumns":[],"sourceNotes":["المصدر : الهيئة العامة للإحصاء - مسح العمرة وزيارة المدينة المنورة."],"notes":[]},{"id":"1.10","sheet":"1.10","group":"إحصاءات العمرة","shortTitle":"1.10 — توزيع المعتمرين من الخارج حسب الجنس والشهر","title":"توزيع المعتمرين من الخارج حسب الجنس والشهر للربع الأول لعام 2026","description":"الربع الأول 2026 — جدول (1.10)","columns":["الشهر","ذكور","إناث","الإجمالي"],"filters":["الشهر"],"rows":[["يناير",1030107,1207311,2237418],["فبراير",1006824,1134899,2141723],["مارس",740973,649157,1390130],["الإجمالي",2777904,2991367,5769271]],"percentColumns":[],"sourceNotes":["المصدر : برنامج خدمة ضيوف الرحمن."],"notes":[]},{"id":"1.11","sheet":"1.11","group":"إحصاءات العمرة","shortTitle":"1.11 — التوزيع النسبي لمعتمري الخارج حسب الفئات العمرية","title":"التوزيع النسبي لمعتمري الخارج حسب الفئات العمرية للربع الأول لعام 2026","description":"الربع الأول 2026 — جدول (1.11)","columns":["الفئات العمرية","يناير (%)","فبراير (%)","مارس (%)","التوزيع النسبي (%)"],"filters":["الفئات العمرية"],"rows":[["0 - 14",0.0971,0.0622,0.0809,0.0803],["15 - 24",0.1004,0.082,0.0928,0.0918],["25 -34",0.1529,0.135,0.1635,0.1489],["35 - 44",0.1729,0.1616,0.1994,0.1752],["45 - 54",0.1686,0.1766,0.1801,0.1744],["55 - 64",0.1751,0.216,0.1661,0.1879],["65+",0.133,0.1665,0.1173,0.1415]],"percentColumns":["يناير (%)","فبراير (%)","مارس (%)","التوزيع النسبي (%)"],"sourceNotes":["المصدر : برنامج خدمة ضيوف الرحمن."],"notes":[]},{"id":"1.12","sheet":"1.12","group":"إحصاءات العمرة","shortTitle":"1.12 — التوزيع النسبي لمعتمري الخارج حسب منافذ القدوم","title":"التوزيع النسبي لمعتمري الخارج حسب منافذ القدوم للربع الأول لعام 2026","description":"الربع الأول 2026 — جدول (1.12)","columns":["نوع المنفذ","التوزيع النسبي (%)"],"filters":["نوع المنفذ"],"rows":[["بحري",0.0039],["بري",0.1362],["جوي",0.8599]],"percentColumns":["التوزيع النسبي (%)"],"sourceNotes":["المصدر : برنامج خدمة ضيوف الرحمن."],"notes":[]},{"id":"2.0","sheet":"2.0","group":"زيارة المدينة المنورة","shortTitle":"2.0 — إجمالي زوار المدينة المنورة من الداخل والخارج حسب الجنس","title":"إجمالي زوار المدينة المنورة من الداخل والخارج حسب الجنس للربع الأول لعام 2026","description":"الربع الأول 2026 — جدول (2.0)","columns":["نوع الزائر","ذكور","إناث","الإجمالي"],"filters":["نوع الزائر"],"rows":[["زوار الداخل",1282220,701973,1984193],["زوار الخارج",1838123,1903337,3741460],["الإجمالي",3120343,2605310,5725653]],"percentColumns":[],"sourceNotes":["المصدر لزوار الداخل: الهيئة العامة للإحصاء - مسح العمرة وزيارة المدينة المنورة.","المصدر لزوار الخارج: وزارة السياحة (بيانات أولية)."],"notes":["ملاحظة: يشمل زوار المدينة المنورة من الداخل الزوار للأغراض الدينية فقط ولايشمل سكان مدينة المدينة المنورة.","ملاحظة: يشمل زوار المدينة المنورة من الخارج زوار المبيت فقط- والمدينة المنورة كمدينة."]},{"id":"2.1","sheet":"2.1","group":"زيارة المدينة المنورة","shortTitle":"2.1 — إجمالي زوار المدينة المنورة من الداخل حسب الجنس والجنسية وفئات العمر","title":"إجمالي زوار المدينة المنورة من الداخل حسب الجنس والجنسية وفئات العمر للربع الأول لعام 2026","description":"الربع الأول 2026 — جدول (2.1)","columns":["فئــات العمـــر","سعودي - ذكور","سعودي - إناث","سعودي - الإجمالي","غير سعودي - ذكور","غير سعودي - إناث","غير سعودي - الإجمالي","الإجمالي - ذكور","الإجمالي - إناث","الإجمالي"],"filters":["فئــات العمـــر"],"rows":[["0 - 14",149901,143622,293523,57242,46761,104003,207143,190383,397526],["15 - 24",83453,100421,183874,59805,27863,87668,143258,128284,271542],["25 -34",81809,72405,154214,240928,66414,307342,322737,138819,461556],["35 - 44",66932,65486,132418,262387,59393,321780,329319,124879,454198],["45 - 54",59982,49989,109971,124076,18331,142407,184058,68320,252378],["55 - 64",42126,30710,72836,24688,6873,31561,66814,37583,104397],["65+",14737,13705,28442,14154,0,14154,28891,13705,42596],["الإجمالي",498940,476338,975278,783280,225635,1008915,1282220,701973,1984193]],"percentColumns":[],"sourceNotes":["المصدر : الهيئة العامة للإحصاء - مسح العمرة وزيارة المدينة المنورة."],"notes":["ملاحظة: يشمل زوار المدينة المنورة من الداخل الزوار للأغراض الدينية فقط ولايشمل سكان مدينة المدينة المنورة."]},{"id":"2.2","sheet":"2.2","group":"زيارة المدينة المنورة","shortTitle":"2.2 — توزيع زوار المدينة المنورة من الداخل حسب الشهر والمناطق الإدارية والجنس","title":"توزيع زوار المدينة المنورة من الداخل حسب الشهر والمناطق الإدارية والجنس للربع الأول لعام 2026","description":"الربع الأول 2026 — جدول (2.2)","columns":["المنطقة الإدارية","يناير - ذكور","يناير - إناث","يناير - الإجمالي","فبراير - ذكور","فبراير - إناث","فبراير - الإجمالي","مارس - ذكور","مارس - إناث","مارس - الإجمالي","الإجمالي - ذكور","الإجمالي - إناث","الإجمالي"],"filters":["المنطقة الإدارية"],"rows":[["الرياض",45713,37793,83506,130131,65148,195279,208746,64948,273694,384590,167889,552479],["مكة المكرمة",58056,61049,119105,75135,37926,113061,101142,78095,179237,234333,177070,411403],["المدينة المنورة",17430,6527,23957,50089,27097,77186,72706,39595,112301,140225,73219,213444],["القصيم",7298,3122,10420,10506,5594,16100,2795,2652,5447,20599,11368,31967],["المنطقة الشرقية",21813,8837,30650,25778,3505,29283,112025,30335,142360,159616,42677,202293],["عسير",5755,1974,7729,5150,2050,7200,34599,14528,49127,45504,18552,64056],["تبوك",10415,11395,21810,21592,13192,34784,32191,18585,50776,64198,43172,107370],["حائل",6816,2527,9343,11667,2539,14206,9788,2730,12518,28271,7796,36067],["الحدود الشمالية",1593,2271,3864,3691,0,3691,3773,1998,5771,9057,4269,13326],["جازان",4317,3977,8294,36416,20441,56857,11974,12844,24818,52707,37262,89969],["نجران",29055,23877,52932,22085,26800,48885,16940,11662,28602,68080,62339,130419],["الباحة",1853,217,2070,3310,478,3788,7371,307,7678,12534,1002,13536],["الجوف",13494,10035,23529,23855,23533,47388,25157,21790,46947,62506,55358,117864],["الإجمالي",223608,173601,397209,419405,228303,647708,639207,300069,939276,1282220,701973,1984193]],"percentColumns":[],"sourceNotes":["المصدر : الهيئة العامة للإحصاء - مسح العمرة وزيارة المدينة المنورة."],"notes":["ملاحظة: يشمل زوار المدينة المنورة من الداخل الزوار للأغراض الدينية فقط ولايشمل سكان مدينة المدينة المنورة."]},{"id":"2.3","sheet":"2.3","group":"زيارة المدينة المنورة","shortTitle":"2.3 — توزيع زوار المدينة المنورة السعوديين من الداخل حسب الشهر والمناطق الإدارية والجنس","title":"توزيع زوار المدينة المنورة السعوديين من الداخل حسب الشهر والمناطق الإدارية والجنس للربع الأول لعام 2026","description":"الربع الأول 2026 — جدول (2.3)","columns":["المنطقة الإدارية","يناير - ذكور","يناير - إناث","يناير - الإجمالي","فبراير - ذكور","فبراير - إناث","فبراير - الإجمالي","مارس - ذكور","مارس - إناث","مارس - الإجمالي","الإجمالي - ذكور","الإجمالي - إناث","الإجمالي"],"filters":["المنطقة الإدارية"],"rows":[["الرياض",20242,21664,41906,48892,33073,81965,39680,30414,70094,108814,85151,193965],["مكة المكرمة",38320,47815,86135,33176,32410,65586,60837,61800,122637,132333,142025,274358],["المدينة المنورة",7808,6527,14335,18487,21255,39742,31529,26093,57622,57824,53875,111699],["القصيم",2855,1909,4764,3444,4562,8006,2029,2652,4681,8328,9123,17451],["المنطقة الشرقية",8153,5978,14131,2745,0,2745,14447,10543,24990,25345,16521,41866],["عسير",5755,1974,7729,2354,2050,4404,2620,5078,7698,10729,9102,19831],["تبوك",7150,10518,17668,11110,11852,22962,15794,15965,31759,34054,38335,72389],["حائل",2334,1586,3920,2965,1888,4853,2402,2730,5132,7701,6204,13905],["الحدود الشمالية",1593,1345,2938,263,0,263,3296,1998,5294,5152,3343,8495],["جازان",1694,3193,4887,11031,8871,19902,6437,8232,14669,19162,20296,39458],["نجران",22169,20581,42750,16196,15407,31603,11537,9760,21297,49902,45748,95650],["الباحة",765,217,982,918,478,1396,1517,307,1824,3200,1002,4202],["الجوف",5680,7348,13028,14934,20846,35780,15782,17419,33201,36396,45613,82009],["الإجمالي",124518,130655,255173,166515,152692,319207,207907,192991,400898,498940,476338,975278]],"percentColumns":[],"sourceNotes":["المصدر : الهيئة العامة للإحصاء - مسح العمرة وزيارة المدينة المنورة."],"notes":["ملاحظة: يشمل زوار المدينة المنورة من الداخل الزوار للأغراض الدينية فقط ولايشمل سكان مدينة المدينة المنورة."]},{"id":"2.4","sheet":"2.4","group":"زيارة المدينة المنورة","shortTitle":"2.4 — توزيع زوار المدينة المنورة غير السعوديين من الداخل حسب الشهر والمناطق الإدارية والجنس","title":"توزيع زوار المدينة المنورة غير السعوديين من الداخل حسب الشهر والمناطق الإدارية والجنس للربع الأول لعام 2026","description":"الربع الأول 2026 — جدول (2.4)","columns":["المنطقة الإدارية","يناير - ذكور","يناير - إناث","يناير - الإجمالي","فبراير - ذكور","فبراير - إناث","فبراير - الإجمالي","مارس - ذكور","مارس - إناث","مارس - الإجمالي","الإجمالي - ذكور","الإجمالي - إناث","الإجمالي"],"filters":["المنطقة الإدارية"],"rows":[["الرياض",25471,16129,41600,81239,32075,113314,169066,34534,203600,275776,82738,358514],["مكة المكرمة",19736,13234,32970,41959,5516,47475,40305,16295,56600,102000,35045,137045],["المدينة المنورة",9622,0,9622,31602,5842,37444,41177,13502,54679,82401,19344,101745],["القصيم",4443,1213,5656,7062,1032,8094,766,0,766,12271,2245,14516],["المنطقة الشرقية",13660,2859,16519,23033,3505,26538,97578,19792,117370,134271,26156,160427],["عسير",0,0,0,2796,0,2796,31979,9450,41429,34775,9450,44225],["تبوك",3265,877,4142,10482,1340,11822,16397,2620,19017,30144,4837,34981],["حائل",4482,941,5423,8702,651,9353,7386,0,7386,20570,1592,22162],["الحدود الشمالية",0,926,926,3428,0,3428,477,0,477,3905,926,4831],["جازان",2623,784,3407,25385,11570,36955,5537,4612,10149,33545,16966,50511],["نجران",6886,3296,10182,5889,11393,17282,5403,1902,7305,18178,16591,34769],["الباحة",1088,0,1088,2392,0,2392,5854,0,5854,9334,0,9334],["الجوف",7814,2687,10501,8921,2687,11608,9375,4371,13746,26110,9745,35855],["الإجمالي",99090,42946,142036,252890,75611,328501,431300,107078,538378,783280,225635,1008915]],"percentColumns":[],"sourceNotes":["المصدر : الهيئة العامة للإحصاء - مسح العمرة وزيارة المدينة المنورة."],"notes":["ملاحظة: يشمل زوار المدينة المنورة من الداخل الزوار للأغراض الدينية فقط ولايشمل سكان مدينة المدينة المنورة."]},{"id":"2.5","sheet":"2.5","group":"زيارة المدينة المنورة","shortTitle":"2.5 — زوار المدينة المنورة من الداخل حسب عدد مرات الزيارة و الشهر والجنس","title":"زوار المدينة المنورة من الداخل حسب عدد مرات الزيارة و الشهر والجنس للربع الأول لعام 2026","description":"الربع الأول 2026 — جدول (2.5)","columns":["الشهر","مرة واحدة - ذكور","مرة واحدة - إناث","مرة واحدة - الإجمالي","اكثر من مرة - ذكور","اكثر من مرة - إناث","اكثر من مرة - الإجمالي","الإجمالي - ذكور","الإجمالي - إناث","الإجمالي"],"filters":["الشهر"],"rows":[["يناير",222057,173031,395088,1551,570,2121,223608,173601,397209],["فبراير",403987,219568,623555,15418,8735,24153,419405,228303,647708],["مارس",618518,283531,902049,20689,16538,37227,639207,300069,939276],["الإجمالي",1244562,676130,1920692,37658,25843,63501,1282220,701973,1984193]],"percentColumns":[],"sourceNotes":["المصدر : الهيئة العامة للإحصاء - مسح العمرة وزيارة المدينة المنورة."],"notes":["ملاحظة: يشمل زوار المدينة المنورة من الداخل الزوار للأغراض الدينية فقط ولايشمل سكان مدينة المدينة المنورة."]},{"id":"2.6","sheet":"2.6","group":"زيارة المدينة المنورة","shortTitle":"2.6 — زوار المدينة المنورة السعوديين من الداخل حسب عدد مرات الزيارة و الشهر والجنس","title":"زوار المدينة المنورة السعوديين من الداخل حسب عدد مرات الزيارة و الشهر والجنس للربع الأول لعام 2026","description":"الربع الأول 2026 — جدول (2.6)","columns":["الشهر","مرة واحدة - ذكور","مرة واحدة - إناث","مرة واحدة - الإجمالي","اكثر من مرة - ذكور","اكثر من مرة - إناث","اكثر من مرة - الإجمالي","الإجمالي - ذكور","الإجمالي - إناث","الإجمالي"],"filters":["الشهر"],"rows":[["يناير",124029,130085,254114,489,570,1059,124518,130655,255173],["فبراير",160942,146644,307586,5573,6048,11621,166515,152692,319207],["مارس",194882,180787,375669,13025,12204,25229,207907,192991,400898],["الإجمالي",479853,457516,937369,19087,18822,37909,498940,476338,975278]],"percentColumns":[],"sourceNotes":["المصدر : الهيئة العامة للإحصاء - مسح العمرة وزيارة المدينة المنورة."],"notes":["ملاحظة: يشمل زوار المدينة المنورة من الداخل الزوار للأغراض الدينية فقط ولايشمل سكان مدينة المدينة المنورة."]},{"id":"2.7","sheet":"2.7","group":"زيارة المدينة المنورة","shortTitle":"2.7 — زوار المدينة المنورة غير السعوديين من الداخل حسب عدد الزيارة و الشهر والجنس","title":"زوار المدينة المنورة غير السعوديين من الداخل حسب عدد الزيارة و الشهر والجنس للربع الأول لعام 2026","description":"الربع الأول 2026 — جدول (2.7)","columns":["الشهر","مرة واحدة - ذكور","مرة واحدة - إناث","مرة واحدة - الإجمالي","اكثر من مرة - ذكور","اكثر من مرة - إناث","اكثر من مرة - الإجمالي","الإجمالي - ذكور","الإجمالي - إناث","الإجمالي"],"filters":["الشهر"],"rows":[["يناير",98028,42946,140974,1062,0,1062,99090,42946,142036],["فبراير",243045,72924,315969,9845,2687,12532,252890,75611,328501],["مارس",423636,102744,526380,7664,4334,11998,431300,107078,538378],["الإجمالي",764709,218614,983323,18571,7021,25592,783280,225635,1008915]],"percentColumns":[],"sourceNotes":["المصدر : الهيئة العامة للإحصاء - مسح العمرة وزيارة المدينة المنورة."],"notes":["ملاحظة: يشمل زوار المدينة المنورة من الداخل الزوار للأغراض الدينية فقط ولايشمل سكان مدينة المدينة المنورة."]},{"id":"2.8","sheet":"2.8","group":"زيارة المدينة المنورة","shortTitle":"2.8 — توزيع زوار المدينة المنورة من الداخل حسب الشهر ونوع الرحلة","title":"توزيع زوار المدينة المنورة من الداخل حسب الشهر ونوع الرحلة للربع الأول لعام 2026","description":"الربع الأول 2026 — جدول (2.8)","columns":["نوع الرحلة","يناير","فبراير","مارس","الإجمالي"],"filters":["نوع الرحلة"],"rows":[["فردية",39745,114556,149431,303732],["مع العائلة",346881,506118,696835,1549834],["مع الأصدقاء",10583,27034,93010,130627],["الإجمالي",397209,647708,939276,1984193]],"percentColumns":[],"sourceNotes":["المصدر : الهيئة العامة للإحصاء - مسح العمرة وزيارة المدينة المنورة."],"notes":["ملاحظة: يشمل زوار المدينة المنورة من الداخل الزوار للأغراض الدينية فقط ولايشمل سكان مدينة المدينة المنورة."]},{"id":"2.9","sheet":"2.9","group":"زيارة المدينة المنورة","shortTitle":"2.9 — توزيع زوار المدينة المنورة من الداخل حسب الشهر ونوع السكن","title":"توزيع زوار المدينة المنورة من الداخل حسب الشهر ونوع السكن للربع الأول لعام 2026","description":"الربع الأول 2026 — جدول (2.9)","columns":["نوع السكن","يناير","فبراير","مارس","الإجمالي"],"filters":["نوع السكن"],"rows":[["الفنادق",116458,139555,338047,594060],["الشقق الفندقية",147352,231127,157094,535573],["مسكن خاص",20545,6347,24991,51883],["مسكن لدى الأقارب او الأصدقاء",17146,18223,21901,57270],["الشقق المخدومة",36494,94165,90540,221199],["الشاليهات",0,0,22792,22792],["الإجمالي",337995,489417,655365,1482777]],"percentColumns":[],"sourceNotes":["المصدر : الهيئة العامة للإحصاء - مسح العمرة وزيارة المدينة المنورة."],"notes":["ملاحظة: يشمل زوار المدينة المنورة من الداخل الزوار للأغراض الدينية فقط ولايشمل سكان مدينة المدينة المنورة والزوار الذين لم يبيتوا بمدينة المدينة المنورة."]},{"id":"2.10","sheet":"2.10","group":"زيارة المدينة المنورة","shortTitle":"2.10 — توزيع زوار المدينة المنورة من الداخل حسب الشهر وتحمل التكاليف","title":"توزيع زوار المدينة المنورة من الداخل حسب الشهر وتحمل التكاليف للربع الأول لعام 2026","description":"الربع الأول 2026 — جدول (2.10)","columns":["تحمل التكاليف","يناير","فبراير","مارس","الإجمالي"],"filters":["تحمل التكاليف"],"rows":[["حساب شخصي أو الأسرة",395818,646520,937668,1980006],["جمعية خيرية",0,1188,1052,2240],["أخرى",1391,0,556,1947],["الإجمالي",397209,647708,939276,1984193]],"percentColumns":[],"sourceNotes":["المصدر : الهيئة العامة للإحصاء - مسح العمرة وزيارة المدينة المنورة."],"notes":["ملاحظة: يشمل زوار المدينة المنورة من الداخل الزوار للأغراض الدينية فقط ولايشمل سكان مدينة المدينة المنورة."]},{"id":"2.11","sheet":"2.11","group":"زيارة المدينة المنورة","shortTitle":"2.11 — توزيع زوار المدينة المنورة من الخارج حسب الجنس والشهر","title":"توزيع زوار المدينة المنورة من الخارج حسب الجنس والشهر للربع الأول لعام 2026","description":"الربع الأول 2026 — جدول (2.11)","columns":["الشهر","ذكور","إناث","الإجمالي"],"filters":["الشهر"],"rows":[["يناير",659563,754883,1414446],["فبراير",654371,711418,1365789],["مارس",524189,437036,961225],["الإجمالي",1838123,1903337,3741460]],"percentColumns":[],"sourceNotes":["المصدر :وزارة السياحة (بيانات أولية) ، البيانات تشمل زوار المبيت فقط- والمدينة المنورة كمدينة."],"notes":["(تشمل زوار المدينة كوجهة رئيسة وزوار المدينة وجهة إضافية)","تشمل زوار المدينة كوجهة رئيسة وزوار المدينة وجهة إضافية."]},{"id":"2.12","sheet":"2.12","group":"زيارة المدينة المنورة","shortTitle":"2.12 — توزيع زوار المدينة المنورة من الخارج حسب الفئات العمرية","title":"توزيع زوار المدينة المنورة من الخارج حسب الفئات العمرية للربع الأول لعام 2026","description":"الربع الأول 2026 — جدول (2.12)","columns":["الفئات العمرية","يناير (%)","فبراير (%)","مارس (%)","الإجمالي (%)"],"filters":["الفئات العمرية"],"rows":[["0 - 15",0.10627058226330309,0.0674599077895634,0.08681526177533876,0.08710476658844409],["16-25",0.10514858821050786,0.08890099422385156,0.09829332362350127,0.09745634057293143],["26-45",0.3326772460737278,0.30873436526432707,0.3744575931753752,0.33467095732681895],["46-60",0.2617342761759728,0.28685031143170725,0.2665057608780462,0.27212852736632226],["60+",0.19416930727648846,0.24805442129055075,0.17392806054773857,0.20863940814548332]],"percentColumns":["يناير (%)","فبراير (%)","مارس (%)","الإجمالي (%)"],"sourceNotes":["المصدر :وزارة السياحة (بيانات أولية) ، البيانات تشمل زوار المبيت فقط- والمدينة المنورة كمدينة."],"notes":[]},{"id":"2.13","sheet":"2.13","group":"زيارة المدينة المنورة","shortTitle":"2.13 — توزيع زوار المدينة المنورة من الخارج حسب منافذ القدوم","title":"توزيع زوار المدينة المنورة من الخارج حسب منافذ القدوم للربع الأول لعام 2026","description":"الربع الأول 2026 — جدول (2.13)","columns":["نوع المنفذ","الإجمالي (%)"],"filters":["نوع المنفذ"],"rows":[["بحري",0.0049862887749701984],["بري",0.1278744126624366],["جوي",0.8671392985625932]],"percentColumns":["الإجمالي (%)"],"sourceNotes":["المصدر :وزارة السياحة (بيانات أولية) ، البيانات تشمل زوار المبيت فقط- والمدينة المنورة كمدينة."],"notes":["تشمل زوار المدينة كوجهة رئيسة وزوار المدينة وجهة إضافية."]},{"id":"2.14","sheet":"2.14","group":"زيارة المدينة المنورة","shortTitle":"2.14 — توزيع زوار المدينة المنورة من الخارج حسب نوع الزائر","title":"توزيع زوار المدينة المنورة من الخارج حسب نوع الزائر للربع الأول لعام 2026","description":"الربع الأول 2026 — جدول (2.14)","columns":["الشهر","زوار المدينة كوجهة رئيسة","زوار المدينة كوجهة إضافية","الإجمالي"],"filters":["الشهر"],"rows":[["يناير",21732,1392714,1414446],["فبراير",14522,1351267,1365789],["مارس",4898,956327,961225],["الإجمالي",41152,3700308,3741460]],"percentColumns":[],"sourceNotes":["المصدر :وزارة السياحة (بيانات أولية) ، البيانات تشمل زوار المبيت فقط- والمدينة المنورة كمدينة."],"notes":[]}]};</script>
   <script>
     (()=>{
@@ -534,6 +890,7 @@ body.chart-modal-open,body.repi-modal-open{overflow:hidden!important}
       viewTabs.table.addEventListener('click',()=>switchView('table'));viewTabs.methodology.addEventListener('click',()=>switchView('methodology'));switchView('table');
       const els={nav:document.querySelector('#datasetNav'),search:document.querySelector('#searchInput'),filters:[document.querySelector('#filter1'),document.querySelector('#filter2'),document.querySelector('#filter3')],filterWraps:[document.querySelector('#filter1Wrap'),document.querySelector('#filter2Wrap'),document.querySelector('#filter3Wrap')],filterLabels:[document.querySelector('#filter1Label'),document.querySelector('#filter2Label'),document.querySelector('#filter3Label')],title:document.querySelector('#tableTitle'),desc:document.querySelector('#tableDescription'),head:document.querySelector('#tableHead'),body:document.querySelector('#tableBody'),count:document.querySelector('#resultsCount'),pager:document.querySelector('#pager'),pageSize:document.querySelector('#pageSize')};
       let state={dataset:0,search:'',filters:{},sort:{column:null,direction:1},page:1,pageSize:10};
+      let userSelectedGroup=false;
       const normalize=v=>String(v??'').trim().toLocaleLowerCase('ar');
       const format=(v,column='',dataset=null,index=-1)=>{if(typeof v!=='number')return v;if(dataset?.percentColumns?.includes(column)||dataset?.percentColumns?.includes(index))return new Intl.NumberFormat('en-US',{minimumFractionDigits:1,maximumFractionDigits:1}).format(v*100)+'%';return new Intl.NumberFormat('en-US',{maximumFractionDigits:2}).format(v)};
       const definitionText={
@@ -551,15 +908,16 @@ body.chart-modal-open,body.repi-modal-open{overflow:hidden!important}
       function renderDefinitions(){const d=data.datasets[state.dataset],content=document.getElementById('tableDefinitionsContent'),caption=document.getElementById('tableCaption');if(caption)caption.textContent=`${d.title} — جدول (${d.id})`;if(content)content.innerHTML=`<dl>${d.columns.map((column,i)=>`<dt id="column-definition-${i}">${column}</dt><dd>${columnDefinition(column)}</dd><dd class="definition-unit"><span class="sr-only">الوحدة: </span>${columnUnit(column)}</dd>`).join('')}</dl>`}
       function renderNav(){
         const active=data.datasets[state.dataset],groups=data.groups||[...new Set(data.datasets.map(d=>d.group))];
-        els.nav.innerHTML=`<div class="dataset-browser"><label><span>القسم</span><select id="datasetGroupSelect" aria-label="اختر قسم الجداول"></select></label><label class="dataset-table-choice"><span>الجدول</span><select id="datasetTableSelect" aria-label="اختر جدول البيانات"></select></label><div class="dataset-browser-count" aria-live="polite"></div></div>`;
-        const groupSelect=els.nav.querySelector('#datasetGroupSelect'),tableSelect=els.nav.querySelector('#datasetTableSelect'),count=els.nav.querySelector('.dataset-browser-count');
+        document.getElementById('dataTablePanel')?.classList.toggle('dataset-awaiting-selection',!userSelectedGroup);
+        els.nav.innerHTML=`<div class="dataset-browser${userSelectedGroup?' domain-selected':' is-awaiting-domain'}"><label><span>القسم</span><select id="datasetGroupSelect" aria-label="اختر قسم الجداول"></select></label><label class="dataset-table-choice"${userSelectedGroup?'':' hidden'}><span>الجدول</span><select id="datasetTableSelect" aria-label="اختر جدول البيانات"></select></label><div class="dataset-browser-count" aria-live="polite"></div></div>`;
+        const groupSelect=els.nav.querySelector('#datasetGroupSelect'),tableSelect=els.nav.querySelector('#datasetTableSelect'),tableChoice=els.nav.querySelector('.dataset-table-choice'),count=els.nav.querySelector('.dataset-browser-count');
+        const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent='حدد قسم البيانات';placeholder.disabled=true;groupSelect.appendChild(placeholder);
         groups.forEach(group=>{const id=typeof group==='string'?group:group.id,label=typeof group==='string'?group:group.label;const option=document.createElement('option');option.value=id;option.textContent=label;groupSelect.appendChild(option)});
-        groupSelect.value=active.group;
-        const fillTables=groupId=>{tableSelect.innerHTML='';data.datasets.forEach((dataset,index)=>{if(dataset.group!==groupId)return;const option=document.createElement('option');option.value=index;option.textContent=dataset.shortTitle;tableSelect.appendChild(option)});tableSelect.value=String(state.dataset);const size=tableSelect.options.length;count.textContent=`${size} ${size===1?'جدول':'جداول'} في هذا القسم`};
-        fillTables(active.group);
+        const fillTables=groupId=>{tableSelect.innerHTML='';data.datasets.forEach((dataset,index)=>{if(dataset.group!==groupId)return;const option=document.createElement('option');option.value=index;option.textContent=dataset.shortTitle;tableSelect.appendChild(option)});tableSelect.value=String(state.dataset);const size=tableSelect.options.length;count.className='dataset-browser-count';count.textContent=`${size} ${size===1?'جدول':'جداول'} في هذا القسم`};
         const choose=index=>{state={dataset:index,search:'',filters:{},sort:{column:null,direction:1},page:1,pageSize:state.pageSize};els.search.value='';renderAll();document.dispatchEvent(new CustomEvent('umrah-dataset-change',{detail:{index}}))};
-        groupSelect.onchange=()=>{const index=data.datasets.findIndex(dataset=>dataset.group===groupSelect.value);if(index>=0)choose(index)};
-        tableSelect.onchange=()=>choose(Number(tableSelect.value));
+        if(userSelectedGroup){groupSelect.value=active.group;tableChoice.hidden=false;fillTables(active.group)}else{groupSelect.value='';tableChoice.hidden=true;tableSelect.innerHTML='';count.className='dataset-browser-guidance';count.textContent='اختر قسم البيانات أولًا، ثم ستظهر الجداول التابعة له.'}
+        groupSelect.onchange=()=>{if(!groupSelect.value)return;userSelectedGroup=true;const index=data.datasets.findIndex(dataset=>dataset.group===groupSelect.value);if(index>=0)choose(index)};
+        tableSelect.onchange=()=>{if(tableSelect.value!=='')choose(Number(tableSelect.value))};
       }
       function renderFilters(){const d=data.datasets[state.dataset];els.filters.forEach((select,i)=>{const colName=d.filters[i];const wrap=els.filterWraps[i];if(!colName){wrap.classList.add('hidden');return}wrap.classList.remove('hidden');const col=d.columns.indexOf(colName);els.filterLabels[i].textContent=colName;select.innerHTML='<option value="">الكل</option>';[...new Set(d.rows.map(r=>r[col]).filter(v=>v!==''&&v!=null))].sort((a,b)=>String(a).localeCompare(String(b),'ar',{numeric:true})).forEach(v=>{const o=document.createElement('option');o.value=String(v);o.textContent=String(v);select.appendChild(o)});select.value=state.filters[colName]||'';select.onchange=()=>{state.filters[colName]=select.value;state.page=1;renderTable()}})}
       function rowForDisplay(row){return row}
@@ -598,9 +956,9 @@ body.chart-modal-open,body.repi-modal-open{overflow:hidden!important}
         const dataSheet=`<Worksheet ss:Name="${xmlEsc(sheetName)}" ss:RightToLeft="1"><Table ss:DefaultRowHeight="25">${columns}<Row ss:Height="40"><Cell ss:StyleID="Title" ss:MergeAcross="${Math.max(0,d.columns.length-1)}"><Data ss:Type="String">${xmlEsc(d.title)}</Data></Cell></Row><Row ss:Height="25"><Cell ss:StyleID="Subtitle" ss:MergeAcross="${Math.max(0,d.columns.length-1)}"><Data ss:Type="String">إحصاءات العمرة — الربع الأول 2026</Data></Cell></Row><Row ss:Height="29"><Cell ss:StyleID="BrandSubtitle" ss:MergeAcross="${Math.max(0,d.columns.length-1)}"><Data ss:Type="String">الهيئة العامة للإحصاء  |  GASTAT · 65 YEARS</Data></Cell></Row><Row ss:Height="25"><Cell ss:StyleID="Subtitle" ss:MergeAcross="${Math.max(0,d.columns.length-1)}"><Data ss:Type="String">النتائج الحالية: ${rows.length} صفًا  |  ${xmlEsc(filterSummary)}</Data></Cell></Row>${header}${body}<Row ss:Height="28"><Cell ss:StyleID="DataNote" ss:MergeAcross="${Math.max(0,d.columns.length-1)}"><Data ss:Type="String">الهيئة العامة للإحصاء — المملكة العربية السعودية</Data></Cell></Row></Table><WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel"><DisplayRightToLeft/><Selected/><DoNotDisplayGridlines/><Zoom>90</Zoom><FreezePanes/><FrozenNoSplit/><SplitHorizontal>5</SplitHorizontal><TopRowBottomPane>5</TopRowBottomPane><ProtectObjects>False</ProtectObjects><ProtectScenarios>False</ProtectScenarios></WorksheetOptions></Worksheet>`;
         const workbook=`<?xml version="1.0" encoding="UTF-8"?><?mso-application progid="Excel.Sheet"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:x="urn:schemas-microsoft-com:office:excel"><x:ExcelWorkbook><x:ActiveSheet>0</x:ActiveSheet><x:TabRatio>600</x:TabRatio><x:ProtectStructure>False</x:ProtectStructure><x:ProtectWindows>False</x:ProtectWindows></x:ExcelWorkbook>${styles.replace('</Styles>',identityStyles+dataStyles+'</Styles>')}${dataSheet}${infoSheet.replace('<Selected/>','')}</Workbook>`;
         const blob=new Blob(['\ufeff'+workbook],{type:'application/vnd.ms-excel;charset=utf-8'}),anchor=document.createElement('a'),url=URL.createObjectURL(blob);
-        anchor.href=url;anchor.download=d.shortTitle+'-A-right-final-v3.xls';anchor.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+        anchor.href=url;anchor.download=d.shortTitle+'-A-right-final-v3.xls';anchor.style.display='none';document.body.appendChild(anchor);anchor.click();setTimeout(()=>{anchor.remove();URL.revokeObjectURL(url)},1800);
       };
-      els.search.addEventListener('input',()=>{state.search=normalize(els.search.value);state.page=1;renderTable()});els.pageSize.addEventListener('change',()=>{state.pageSize=Number(els.pageSize.value);state.page=1;renderTable()});document.querySelector('#resetBtn').onclick=()=>{state.search='';state.filters={};state.sort={column:null,direction:1};state.page=1;els.search.value='';renderAll()};const saveBlob=(blob,name)=>{const a=document.createElement('a'),url=URL.createObjectURL(blob);a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};const machinePayload=()=>{const d=data.datasets[state.dataset],rows=filteredRows(),records=rows.map(row=>Object.fromEntries(d.columns.map((column,i)=>[column,row[i]])));return{d,rows,records,payload:{meta:{datasetId:'SA-GASTAT-UMRAH-Q1-2026-'+(state.dataset+1),title:d.title,description:d.description,producer:'الهيئة العامة للإحصاء — المملكة العربية السعودية',source:data.source,generatedAt:new Date().toISOString(),language:'ar',filters:{search:state.search,...state.filters},rowCount:records.length},data:records}}};document.querySelector('#exportBtn').onclick=()=>{const d=data.datasets[state.dataset],rows=filteredRows(),csv='\ufeff'+[d.columns,...rows].map(r=>r.map(v=>'"'+String(v??'').replaceAll('"','""')+'"').join(',')).join('\r\n');saveBlob(new Blob([csv],{type:'text/csv;charset=utf-8'}),d.shortTitle+'-filtered.csv')};document.querySelector('#jsonExportBtn').onclick=()=>{const {d,payload}=machinePayload();saveBlob(new Blob([JSON.stringify(payload,null,2)],{type:'application/json;charset=utf-8'}),d.shortTitle+'-filtered.json')};document.querySelector('#apiExportBtn').onclick=()=>{const {d,payload}=machinePayload(),response={status:200,apiVersion:'1.0',self:location.href.split('#')[0],...payload};saveBlob(new Blob([JSON.stringify(response,null,2)],{type:'application/json;charset=utf-8'}),d.shortTitle+'-api-response.json')};document.querySelector('#sdmxExportBtn').onclick=()=>{const {d,rows}=machinePayload(),header=['STRUCTURE','STRUCTURE_ID','ACTION',...d.columns],body=rows.map(row=>['dataflow','SA-GASTAT:UMRAH_Q1_2026(1.0)','I',...row]),csv='\ufeff'+[header,...body].map(r=>r.map(v=>'"'+String(v??'').replaceAll('"','""')+'"').join(',')).join('\r\n');saveBlob(new Blob([csv],{type:'text/csv;charset=utf-8'}),d.shortTitle+'-sdmx.csv')};const shareBtn=document.querySelector('#shareBtn');if(shareBtn)shareBtn.onclick=async()=>{const share={title:document.title,text:'جداول إحصاءات العمرة — الربع الأول 2026',url:location.href};if(navigator.share)await navigator.share(share);else{await navigator.clipboard.writeText(location.href);alert('تم نسخ رابط الصفحة')}};document.querySelectorAll('[data-copy-target]').forEach(button=>{button.addEventListener('click',async()=>{const target=document.getElementById(button.dataset.copyTarget);const text=target.innerText.trim();try{await navigator.clipboard.writeText(text)}catch(error){const area=document.createElement('textarea');area.value=text;area.style.position='fixed';area.style.opacity='0';document.body.appendChild(area);area.select();document.execCommand('copy');area.remove()}const original=button.textContent;button.textContent=button.closest('[lang="en"]')?'Copied':'تم النسخ';button.classList.add('copied');setTimeout(()=>{button.textContent=original;button.classList.remove('copied')},1600)})});renderAll();
+      document.querySelector('#filteredExcelBtn').onclick=()=>window.downloadFilteredExcel();els.search.addEventListener('input',()=>{state.search=normalize(els.search.value);state.page=1;renderTable()});els.pageSize.addEventListener('change',()=>{state.pageSize=Number(els.pageSize.value);state.page=1;renderTable()});document.querySelector('#resetBtn').onclick=()=>{state.search='';state.filters={};state.sort={column:null,direction:1};state.page=1;els.search.value='';renderAll()};const saveBlob=(blob,name)=>{const a=document.createElement('a'),url=URL.createObjectURL(blob);a.href=url;a.download=name;a.style.display='none';document.body.appendChild(a);a.click();setTimeout(()=>{a.remove();URL.revokeObjectURL(url)},1800)};const machinePayload=()=>{const d=data.datasets[state.dataset],rows=filteredRows(),records=rows.map(row=>Object.fromEntries(d.columns.map((column,i)=>[column,row[i]])));return{d,rows,records,payload:{meta:{datasetId:'SA-GASTAT-UMRAH-Q1-2026-'+(state.dataset+1),title:d.title,description:d.description,producer:'الهيئة العامة للإحصاء — المملكة العربية السعودية',source:data.source,generatedAt:new Date().toISOString(),language:'ar',filters:{search:state.search,...state.filters},rowCount:records.length},data:records}}};document.querySelector('#exportBtn').onclick=()=>{const d=data.datasets[state.dataset],rows=filteredRows(),csv='\ufeff'+[d.columns,...rows].map(r=>r.map(v=>'"'+String(v??'').replaceAll('"','""')+'"').join(',')).join('\r\n');saveBlob(new Blob([csv],{type:'text/csv;charset=utf-8'}),d.shortTitle+'-filtered.csv')};document.querySelector('#jsonExportBtn').onclick=()=>{const {d,payload}=machinePayload();saveBlob(new Blob([JSON.stringify(payload,null,2)],{type:'application/json;charset=utf-8'}),d.shortTitle+'-filtered.json')};document.querySelector('#apiExportBtn').onclick=()=>{const {d,payload}=machinePayload(),response={status:200,apiVersion:'1.0',self:location.href.split('#')[0],...payload};saveBlob(new Blob([JSON.stringify(response,null,2)],{type:'application/json;charset=utf-8'}),d.shortTitle+'-api-response.json')};document.querySelector('#sdmxExportBtn').onclick=()=>{const {d,rows}=machinePayload(),header=['STRUCTURE','STRUCTURE_ID','ACTION',...d.columns],body=rows.map(row=>['dataflow','SA-GASTAT:UMRAH_Q1_2026(1.0)','I',...row]),csv='\ufeff'+[header,...body].map(r=>r.map(v=>'"'+String(v??'').replaceAll('"','""')+'"').join(',')).join('\r\n');saveBlob(new Blob([csv],{type:'text/csv;charset=utf-8'}),d.shortTitle+'-sdmx.csv')};const shareBtn=document.querySelector('#shareBtn');if(shareBtn)shareBtn.onclick=async()=>{const share={title:document.title,text:'جداول إحصاءات العمرة — الربع الأول 2026',url:location.href};if(navigator.share)await navigator.share(share);else{await navigator.clipboard.writeText(location.href);alert('تم نسخ رابط الصفحة')}};document.querySelectorAll('[data-copy-target]').forEach(button=>{button.addEventListener('click',async()=>{const target=document.getElementById(button.dataset.copyTarget);const text=target.innerText.trim();try{await navigator.clipboard.writeText(text)}catch(error){const area=document.createElement('textarea');area.value=text;area.style.position='fixed';area.style.opacity='0';document.body.appendChild(area);area.select();document.execCommand('copy');area.remove()}const original=button.textContent;button.textContent=button.closest('[lang="en"]')?'Copied':'تم النسخ';button.classList.add('copied');setTimeout(()=>{button.textContent=original;button.classList.remove('copied')},1600)})});renderAll();
     })();
   </script>
   
@@ -932,26 +1290,7 @@ body.chart-modal-open,body.repi-modal-open{overflow:hidden!important}
   .dataset-browser-guidance{align-self:center;color:#60726b;font-size:.84rem}
   @media(max-width:760px){.dataset-browser.is-awaiting-domain{grid-template-columns:1fr}.dataset-browser-guidance{align-self:start}}
 </style>
-<script id="progressive-dataset-browser-behavior">
-(()=>{
-  const nav=document.getElementById('datasetNav');if(!nav)return;
-  let domainChosen=false;
-  const domainLabels={'أبرز المؤشرات':'ملخص المؤشرات الرئيسية','إحصاءات العمرة':'إحصاءات العمرة','زيارة المدينة المنورة':'زيارة المدينة المنورة'};
-  nav.addEventListener('change',event=>{if(event.target.id==='datasetGroupSelect'&&event.target.value)domainChosen=true},true);
-  function enhance(){
-    const browser=nav.querySelector('.dataset-browser'),group=nav.querySelector('#datasetGroupSelect'),table=nav.querySelector('#datasetTableSelect'),tableChoice=nav.querySelector('.dataset-table-choice'),count=nav.querySelector('.dataset-browser-count');if(!browser||!group||!table||browser.dataset.progressive==='true')return;
-    browser.dataset.progressive='true';group.closest('label').querySelector('span').textContent='اختر قسم البيانات';group.setAttribute('aria-label','اختر قسم البيانات');tableChoice.querySelector('span').textContent='اختر الجدول';
-    [...group.options].forEach(option=>{option.textContent=domainLabels[option.textContent]||option.textContent});
-    [...table.options].forEach(option=>{if(option.textContent.startsWith('0.0 —'))option.textContent='0.0 — ملخص المؤشرات الرئيسية'});
-    if(!domainChosen){
-      const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent='حدد قسم البيانات';placeholder.disabled=true;placeholder.selected=true;group.insertBefore(placeholder,group.firstChild);group.value='';tableChoice.hidden=true;browser.classList.add('is-awaiting-domain');count.className='dataset-browser-guidance';count.textContent='بعد اختيار القسم ستظهر الجداول المتاحة داخله.';
-    }else{
-      tableChoice.hidden=false;browser.classList.remove('is-awaiting-domain');
-    }
-  }
-  new MutationObserver(()=>queueMicrotask(enhance)).observe(nav,{childList:true,subtree:true});enhance();
-})();
-</script>
+
 <style id="visible-dataset-domains-style">
   #datasetNav .dataset-browser{display:flex;flex-direction:column;align-items:stretch;gap:14px}
   #datasetNav .dataset-group-native{display:none!important}
@@ -1051,7 +1390,7 @@ body.chart-modal-open,body.repi-modal-open{overflow:hidden!important}
 
 
 <script id="nds-newsletter-buttons">
-(()=>{const root=document.getElementById('main-content');if(!root)return;const rules=[['#advancedExport>summary,.dataset-chart-toggle','nds-primary nds-md'],['.toolbar-btn-secondary,.repi-chart-action,.change-dataset-btn,.advanced-export-option','nds-secondary-outline nds-md'],['.dataset-domain-option','nds-secondary-outline nds-lg'],['.page-btn,.chart-series-toggle','nds-secondary-outline nds-sm'],['.icon-btn','nds-subtle nds-md']];const apply=scope=>{rules.forEach(([selector,classes])=>scope.querySelectorAll?.(selector).forEach(control=>{control.classList.add('nds-btn','newsletter-nds-button',...classes.split(' '));control.querySelectorAll(':scope>span:not([aria-hidden="true"])').forEach(span=>span.classList.add('nds-label'))}))};apply(root);new MutationObserver(records=>records.forEach(record=>record.addedNodes.forEach(node=>{if(node.nodeType!==1)return;apply(node);rules.forEach(([selector,classes])=>{if(node.matches?.(selector)){node.classList.add('nds-btn','newsletter-nds-button',...classes.split(' '));node.querySelectorAll(':scope>span:not([aria-hidden="true"])').forEach(span=>span.classList.add('nds-label'))}})}))).observe(root,{childList:true,subtree:true})})();
+(()=>{const root=document.getElementById('main-content');if(!root)return;const rules=[['#advancedExportTrigger,.dataset-chart-toggle','nds-primary nds-md'],['.toolbar-btn-secondary,.repi-chart-action,.change-dataset-btn,.advanced-export-option','nds-secondary-outline nds-md'],['.dataset-domain-option','nds-secondary-outline nds-lg'],['.page-btn,.chart-series-toggle','nds-secondary-outline nds-sm'],['.icon-btn','nds-subtle nds-md']];const apply=scope=>{rules.forEach(([selector,classes])=>scope.querySelectorAll?.(selector).forEach(control=>{control.classList.add('nds-btn','newsletter-nds-button',...classes.split(' '));control.querySelectorAll(':scope>span:not([aria-hidden="true"])').forEach(span=>span.classList.add('nds-label'))}))};apply(root);new MutationObserver(records=>records.forEach(record=>record.addedNodes.forEach(node=>{if(node.nodeType!==1)return;apply(node);rules.forEach(([selector,classes])=>{if(node.matches?.(selector)){node.classList.add('nds-btn','newsletter-nds-button',...classes.split(' '));node.querySelectorAll(':scope>span:not([aria-hidden="true"])').forEach(span=>span.classList.add('nds-label'))}})}))).observe(root,{childList:true,subtree:true})})();
 </script>
 <script id="nds-newsletter-form-controls">
 (()=>{const root=document.getElementById('dataTablePanel');if(!root)return;root.querySelector('.toolbar')?.classList.add('nds-form');const fieldSelector='.field,.page-size';const wrapLabel=label=>{if(!label||label.querySelector(':scope>.nds-label'))return;const span=document.createElement('span');span.className='nds-label';while(label.firstChild)span.appendChild(label.firstChild);label.appendChild(span)};const enhance=(container,input,label)=>{if(!container||!input||container.dataset.ndsFieldReady==='true')return;container.dataset.ndsFieldReady='true';container.classList.add('nds-form-container');input.classList.remove('control');input.classList.add('nds-input');const header=document.createElement('div');header.className='nds-form-header';const control=document.createElement('div');control.className='nds-form-control';if(label){wrapLabel(label);header.appendChild(label)}container.insertBefore(header,input);container.insertBefore(control,input);control.appendChild(input);if(input.tagName==='SELECT')container.classList.add('nds-select');if(input.type==='search'){container.classList.add('nds-search-box');input.classList.add('nds-search-input');const action=document.createElement('div');action.className='nds-form-action';const clear=document.createElement('button');clear.type='button';clear.className='nds-btn nds-subtle nds-clear';clear.setAttribute('aria-label','مسح البحث');clear.innerHTML='<span aria-hidden="true">×</span>';const sync=()=>{clear.hidden=!input.value};clear.addEventListener('click',()=>{input.value='';input.dispatchEvent(new Event('input',{bubbles:true}));input.focus();sync()});input.addEventListener('input',sync);action.appendChild(clear);control.appendChild(action);sync()}};const adoptField=container=>enhance(container,container?.querySelector(':scope>input,:scope>select'),container?.querySelector(':scope>label'));const adoptDatasetLabel=container=>{if(!container||container.dataset.ndsFieldReady==='true')return;const input=container.querySelector(':scope>select'),title=container.querySelector(':scope>span');if(!input)return;container.dataset.ndsFieldReady='true';container.classList.add('nds-form-container','nds-select');input.classList.remove('control');input.classList.add('nds-input');const header=document.createElement('div');header.className='nds-form-header';const control=document.createElement('div');control.className='nds-form-control';if(title){title.classList.add('nds-label');header.appendChild(title)}container.insertBefore(header,input);container.insertBefore(control,input);control.appendChild(input)};const scan=scope=>{scope.querySelectorAll?.(fieldSelector).forEach(adoptField);scope.querySelectorAll?.('.dataset-browser>label').forEach(adoptDatasetLabel)};scan(root);new MutationObserver(records=>records.forEach(record=>record.addedNodes.forEach(node=>{if(node.nodeType!==1)return;if(node.matches?.(fieldSelector))adoptField(node);if(node.matches?.('.dataset-browser>label'))adoptDatasetLabel(node);scan(node)}))).observe(root,{childList:true,subtree:true})})();
@@ -1096,9 +1435,416 @@ body.chart-modal-open,body.repi-modal-open{overflow:hidden!important}
  addEventListener('resize',()=>requestAnimationFrame(apply),{passive:true});apply();
 })();
 </script>
+<style id="umrah-accordion-reliability">
+  /* Explicit chevrons: do not depend on NDS pseudo-element rules. */
+  #dataTablePanel .nds-newsletter-accordion>summary::after,
+  #methodologyPanel .nds-accordion-btn::after{display:none!important;content:none!important}
+  .umrah-accordion-chevron{display:grid!important;place-items:center!important;width:22px!important;height:22px!important;min-width:22px!important;flex:0 0 22px!important;margin-inline-start:10px!important;color:#111827!important;transition:transform .18s ease!important}
+  .umrah-accordion-chevron svg{display:block!important;width:18px!important;height:18px!important;fill:none!important;stroke:currentColor!important;stroke-width:2!important;stroke-linecap:round!important;stroke-linejoin:round!important}
+  details.nds-newsletter-accordion[open]>summary .umrah-accordion-chevron,
+  #methodologyPanel .nds-accordion-btn[aria-expanded="true"] .umrah-accordion-chevron{transform:rotate(180deg)!important}
+  #dataTablePanel #datasetNav .dataset-table-choice[hidden],
+  #dataTablePanel #datasetNav .dataset-table-choice.nds-form-container[hidden]{display:none!important}
+</style>
+<script id="umrah-accordion-reliability-script">
+(()=>{
+  const chevron=()=>{const span=document.createElement('span');span.className='umrah-accordion-chevron';span.setAttribute('aria-hidden','true');span.innerHTML='<svg viewBox="0 0 24 24"><path d="m7 9.5 5 5 5-5"/></svg>';return span};
+  const enhanceDetails=scope=>scope.querySelectorAll?.('details.nds-newsletter-accordion>summary').forEach(summary=>{if(!summary.querySelector(':scope>.umrah-accordion-chevron'))summary.appendChild(chevron())});
+  const enhanceMethod=scope=>scope.querySelectorAll?.('#methodologyPanel .nds-accordion-btn').forEach(button=>{if(!button.querySelector(':scope>.umrah-accordion-chevron'))button.appendChild(chevron())});
+  const enhance=scope=>{enhanceDetails(scope);enhanceMethod(scope)};
+  enhance(document);
+  new MutationObserver(records=>records.forEach(record=>record.addedNodes.forEach(node=>{if(node.nodeType===1){enhance(node);if(node.matches?.('details.nds-newsletter-accordion>summary'))enhanceDetails(node.parentElement);if(node.matches?.('#methodologyPanel .nds-accordion-btn'))enhanceMethod(node.parentElement)}}))).observe(document.body,{childList:true,subtree:true});
+
+  /* Own the details toggles so host/NDS click handlers cannot cancel them. */
+  document.addEventListener('click',event=>{
+    const summary=event.target.closest('details.nds-newsletter-accordion>summary');
+    if(!summary)return;
+    const details=summary.parentElement;if(!details)return;
+    event.preventDefault();event.stopImmediatePropagation();details.open=!details.open;
+  },true);
+
+  /* Own methodology accordion state; exactly one section may be open. */
+  document.addEventListener('click',event=>{
+    const button=event.target.closest('#methodologyPanel .nds-accordion-btn');
+    if(!button)return;
+    const accordion=button.closest('.method-nds-accordion');if(!accordion)return;
+    event.preventDefault();event.stopImmediatePropagation();
+    const opening=button.getAttribute('aria-expanded')!=='true';
+    accordion.querySelectorAll('.nds-accordion-btn').forEach(other=>{
+      const panel=document.getElementById(other.getAttribute('aria-controls')),open=opening&&other===button;
+      other.setAttribute('aria-expanded',String(open));
+      if(open)other.dataset.state='open';else other.removeAttribute('data-state');
+      if(panel){panel.hidden=!open;if(open)panel.dataset.state='open';else panel.removeAttribute('data-state')}
+    });
+  },true);
+})();
+</script>
+<script id="umrah-official-workbook-download">
+(()=>{
+  const button=document.getElementById('officialExcelDownload');
+  if(!button)return;
+  button.removeAttribute('href');button.removeAttribute('download');button.setAttribute('role','button');button.tabIndex=0;
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
+  const save=(blob,name)=>{const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.rel='noopener';a.style.display='none';document.body.appendChild(a);a.click();setTimeout(()=>{a.remove();URL.revokeObjectURL(url)},4000)};
+  const build=()=>{
+    const data=window.NEWSLETTER_DATA;if(!data?.datasets?.length)return;
+    const used=new Set(),sheetName=(raw,index)=>{let n=String(raw||`جدول ${index+1}`).replace(/[\\/?*\[\]:]/g,' ').slice(0,31)||`جدول ${index+1}`,base=n,k=2;while(used.has(n))n=(base.slice(0,27)+' '+k++).slice(0,31);used.add(n);return n};
+    const cell=v=>{const numeric=typeof v==='number'&&Number.isFinite(v);return `<Cell><Data ss:Type="${numeric?'Number':'String'}">${esc(v)}</Data></Cell>`};
+    const sheets=data.datasets.map((d,i)=>`<Worksheet ss:Name="${esc(sheetName(d.shortTitle,i))}" ss:RightToLeft="1"><Table><Row>${d.columns.map(cell).join('')}</Row>${d.rows.map(row=>`<Row>${row.map(cell).join('')}</Row>`).join('')}</Table><WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel"><DisplayRightToLeft/></WorksheetOptions></Worksheet>`).join('');
+    const xml=`<?xml version="1.0" encoding="UTF-8"?><?mso-application progid="Excel.Sheet"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:x="urn:schemas-microsoft-com:office:excel"><Styles><Style ss:ID="Default" ss:Name="Normal"><Alignment ss:ReadingOrder="RightToLeft"/><Font ss:FontName="Arial" ss:Size="10"/></Style></Styles>${sheets}</Workbook>`;
+    save(new Blob(['\ufeff'+xml],{type:'application/vnd.ms-excel;charset=utf-8'}),'Umrah-Statistics-Q1-2026-all-tables.xls');
+  };
+  button.addEventListener('click',e=>{e.preventDefault();build()});
+  button.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();build()}});
+})();
+</script>
 <script id="liferay-iframe-auto-height">
 (()=>{let last=0;const send=()=>{const main=document.getElementById('main-content');if(!main)return;const box=main.getBoundingClientRect(),height=Math.ceil(box.bottom+scrollY+20);if(Math.abs(height-last)<2)return;last=height;parent.postMessage({type:'umrah-newsletter-height',height},'*')};
 addEventListener('load',send);new ResizeObserver(send).observe(document.getElementById('main-content')||document.body);document.addEventListener('click',()=>{setTimeout(send,80);setTimeout(send,300)},true);document.addEventListener('change',()=>setTimeout(send,100),true);})();
 </script>
+
+
+
+<style id="dataset-selection-compact-v3">
+  /* Before a section is selected, show only the section chooser. */
+  #dataTablePanel.dataset-awaiting-selection .toolbar,
+  #dataTablePanel.dataset-awaiting-selection .table-heading,
+  #dataTablePanel.dataset-awaiting-selection .dataset-chart-toggle-row,
+  #dataTablePanel.dataset-awaiting-selection .table-definitions,
+  #dataTablePanel.dataset-awaiting-selection .table-wrap,
+  #dataTablePanel.dataset-awaiting-selection .table-source-note,
+  #dataTablePanel.dataset-awaiting-selection > .note,
+  #dataTablePanel.dataset-awaiting-selection .pagination,
+  #dataTablePanel.dataset-awaiting-selection .dataset-chart-section{display:none!important}
+
+  /* The table selector must never appear until a section is explicitly chosen. */
+  #datasetNav .dataset-browser.is-awaiting-domain .dataset-table-choice,
+  #datasetNav .dataset-browser.is-awaiting-domain .dataset-table-choice.nds-form-container{display:none!important}
+  #datasetNav .dataset-browser.is-awaiting-domain .dataset-browser-count{display:none!important}
+
+  /* Compact section chooser. */
+  #dataTablePanel .dataset-nav{margin:10px 24px 12px!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;overflow:visible!important}
+  #datasetNav .dataset-browser{gap:8px!important;padding:10px 12px!important;border:1px solid #d8e0dc!important;border-radius:10px!important;background:#f7f8f8!important}
+  #datasetNav .dataset-domain-panel{gap:7px!important}
+  #datasetNav .dataset-domain-heading{font-size:13px!important;line-height:1.4!important}
+  #datasetNav .dataset-domain-heading::before{width:21px!important;height:21px!important;font-size:11px!important}
+  #datasetNav .dataset-domain-options{gap:7px!important}
+  #datasetNav .dataset-domain-option{min-height:42px!important;padding:7px 11px!important;border-radius:8px!important;font-size:13px!important;line-height:1.35!important}
+  #datasetNav .dataset-domain-option::before{width:6px!important;height:6px!important;border-width:2px!important}
+
+  /* Compact table chooser after selecting a section. */
+  #datasetNav .dataset-table-choice{width:min(100%,680px)!important;gap:5px!important;padding:2px 0 0!important;margin:0!important}
+  #datasetNav .dataset-table-choice .nds-form-header{min-height:0!important;margin:0!important;padding:0!important}
+  #datasetNav .dataset-table-choice .nds-form-header>span{font-size:12px!important;line-height:1.35!important}
+  #datasetNav .dataset-table-choice .nds-form-header>span::before{width:20px!important;height:20px!important;font-size:10px!important}
+  #datasetNav .dataset-table-choice .nds-form-control{min-height:0!important}
+  #datasetNav #datasetTableSelect{min-height:42px!important;height:42px!important;padding-block:5px!important;font-size:13px!important;border-radius:7px!important}
+  #datasetNav .dataset-browser-count{padding:5px 9px!important;font-size:11px!important}
+
+  @media(max-width:767px){
+    #dataTablePanel .dataset-nav{margin:8px 10px 10px!important}
+    #datasetNav .dataset-browser{padding:9px!important;gap:7px!important}
+    #datasetNav .dataset-domain-options{grid-template-columns:1fr!important;gap:6px!important}
+    #datasetNav .dataset-domain-option{min-height:40px!important;justify-content:flex-start!important;padding:7px 10px!important;text-align:right!important}
+    #datasetNav .dataset-table-choice{width:100%!important}
+  }
+</style>
+<script id="dataset-selection-guard-v3">
+(()=>{
+  const panel=document.getElementById('dataTablePanel'),nav=document.getElementById('datasetNav');
+  if(!panel||!nav)return;
+  let explicitlySelected=false;
+  const sync=()=>{
+    const browser=nav.querySelector('.dataset-browser'),choice=nav.querySelector('.dataset-table-choice'),group=nav.querySelector('#datasetGroupSelect');
+    if(!browser)return;
+    const selected=explicitlySelected && !!group?.value;
+    panel.classList.toggle('dataset-awaiting-selection',!selected);
+    browser.classList.toggle('is-awaiting-domain',!selected);
+    browser.classList.toggle('domain-selected',selected);
+    if(choice){choice.hidden=!selected;choice.style.display=selected?'':'none'}
+  };
+  nav.addEventListener('click',event=>{
+    const button=event.target.closest('.dataset-domain-option');
+    if(!button)return;
+    explicitlySelected=true;
+    requestAnimationFrame(sync);
+    setTimeout(sync,0);
+  },true);
+  nav.addEventListener('change',event=>{
+    if(event.target.id==='datasetGroupSelect' && event.target.value) explicitlySelected=true;
+    sync();
+  },true);
+  new MutationObserver(()=>queueMicrotask(sync)).observe(nav,{childList:true,subtree:true});
+  panel.classList.add('dataset-awaiting-selection');
+  sync();
+})();
+</script>
+
+
+
+
+<script id="advanced-export-reliability-v5">
+(()=>{
+  const root=document.getElementById('advancedExport');
+  const trigger=document.getElementById('advancedExportTrigger');
+  const menu=document.getElementById('advancedExportMenu');
+  if(!root||!trigger||!menu)return;
+
+  const setOpen=open=>{
+    root.classList.toggle('is-open',!!open);
+    menu.hidden=!open;
+    trigger.setAttribute('aria-expanded',String(!!open));
+  };
+
+  trigger.addEventListener('click',event=>{
+    event.preventDefault();
+    setOpen(!root.classList.contains('is-open'));
+  });
+
+  document.addEventListener('click',event=>{
+    if(root.classList.contains('is-open')&&!root.contains(event.target))setOpen(false);
+  });
+
+  document.addEventListener('keydown',event=>{
+    if(event.key==='Escape'&&root.classList.contains('is-open')){
+      setOpen(false);
+      trigger.focus();
+    }
+  });
+
+  menu.addEventListener('click',event=>{
+    if(event.target.closest('.advanced-export-option'))setTimeout(()=>setOpen(false),150);
+  });
+
+  setOpen(false);
+})();
+</script>
+
+<style id="final-view-tabs-stability-fix">
+/* Final override: keep both main view tabs visually identical in every interaction state. */
+#newsletterTabs #dataTableTab,
+#newsletterTabs #methodologyTab,
+#newsletterTabs #dataTableTab:hover,
+#newsletterTabs #methodologyTab:hover,
+#newsletterTabs #dataTableTab:focus,
+#newsletterTabs #methodologyTab:focus,
+#newsletterTabs #dataTableTab:focus-visible,
+#newsletterTabs #methodologyTab:focus-visible,
+#newsletterTabs #dataTableTab:active,
+#newsletterTabs #methodologyTab:active,
+#newsletterTabs #dataTableTab.active,
+#newsletterTabs #methodologyTab.active,
+#newsletterTabs #dataTableTab[aria-selected="true"],
+#newsletterTabs #methodologyTab[aria-selected="true"],
+#newsletterTabs #dataTableTab[aria-selected="false"],
+#newsletterTabs #methodologyTab[aria-selected="false"] {
+  -webkit-appearance:none!important;
+  appearance:none!important;
+  font-family:"IBM Plex Sans Arabic","IBM Plex Sans",Tahoma,Arial,sans-serif!important;
+  font-size:16px!important;
+  font-style:normal!important;
+  font-weight:700!important;
+  font-stretch:normal!important;
+  font-variant:normal!important;
+  line-height:1.45!important;
+  letter-spacing:0!important;
+  text-decoration:none!important;
+  text-shadow:none!important;
+  color:#374151!important;
+  -webkit-text-fill-color:#374151!important;
+  background:#fff!important;
+  border:0!important;
+  border-bottom:3px solid transparent!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  opacity:1!important;
+  transform:none!important;
+  filter:none!important;
+  transition:border-bottom-color .15s ease!important;
+}
+#newsletterTabs #dataTableTab.active,
+#newsletterTabs #methodologyTab.active,
+#newsletterTabs #dataTableTab[aria-selected="true"],
+#newsletterTabs #methodologyTab[aria-selected="true"] {
+  border-bottom-color:#1b8354!important;
+}
+#newsletterTabs #dataTableTab .nds-label,
+#newsletterTabs #methodologyTab .nds-label,
+#newsletterTabs #dataTableTab:hover .nds-label,
+#newsletterTabs #methodologyTab:hover .nds-label,
+#newsletterTabs #dataTableTab:focus .nds-label,
+#newsletterTabs #methodologyTab:focus .nds-label,
+#newsletterTabs #dataTableTab:active .nds-label,
+#newsletterTabs #methodologyTab:active .nds-label,
+#newsletterTabs #dataTableTab.active .nds-label,
+#newsletterTabs #methodologyTab.active .nds-label,
+#newsletterTabs #dataTableTab[aria-selected="true"] .nds-label,
+#newsletterTabs #methodologyTab[aria-selected="true"] .nds-label {
+  font:inherit!important;
+  color:#374151!important;
+  -webkit-text-fill-color:#374151!important;
+  text-decoration:none!important;
+  text-shadow:none!important;
+  opacity:1!important;
+  transform:none!important;
+  filter:none!important;
+}
+#newsletterTabs #dataTableTab .view-tab-icon,
+#newsletterTabs #methodologyTab .view-tab-icon,
+#newsletterTabs #dataTableTab .view-tab-icon svg,
+#newsletterTabs #methodologyTab .view-tab-icon svg {
+  color:#374151!important;
+  stroke:#374151!important;
+  opacity:1!important;
+  transform:none!important;
+  filter:none!important;
+}
+#newsletterTabs #dataTableTab::before,
+#newsletterTabs #methodologyTab::before,
+#newsletterTabs #dataTableTab::after,
+#newsletterTabs #methodologyTab::after {
+  content:none!important;
+  display:none!important;
+}
+#newsletterTabs #dataTableTab:focus-visible,
+#newsletterTabs #methodologyTab:focus-visible {
+  outline:2px solid #1b8354!important;
+  outline-offset:-2px!important;
+}
+@media(max-width:600px){
+  #newsletterTabs #dataTableTab,
+  #newsletterTabs #methodologyTab,
+  #newsletterTabs #dataTableTab:hover,
+  #newsletterTabs #methodologyTab:hover,
+  #newsletterTabs #dataTableTab:focus,
+  #newsletterTabs #methodologyTab:focus,
+  #newsletterTabs #dataTableTab:active,
+  #newsletterTabs #methodologyTab:active,
+  #newsletterTabs #dataTableTab.active,
+  #newsletterTabs #methodologyTab.active,
+  #newsletterTabs #dataTableTab[aria-selected="true"],
+  #newsletterTabs #methodologyTab[aria-selected="true"] {
+    font-size:13px!important;
+    font-weight:700!important;
+  }
+}
+</style>
+
 </body>
 </html>
+<style id="umrah-accordion-final-fix">
+/* Unified accordion controls: large left-side chevron in RTL. */
+#methodologyPanel .nds-accordion-btn,
+#tableDefinitions .umrah-definitions-toggle{
+  display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;
+  width:100%!important;box-sizing:border-box!important;gap:14px!important;direction:rtl!important;text-align:right!important;
+}
+#methodologyPanel .nds-accordion-title,
+#tableDefinitions .umrah-definitions-title{
+  order:1!important;flex:1 1 auto!important;min-width:0!important;text-align:right!important;
+}
+#methodologyPanel .umrah-accordion-chevron,
+#tableDefinitions .umrah-accordion-chevron{
+  order:2!important;flex:0 0 30px!important;width:30px!important;height:30px!important;min-width:30px!important;
+  margin:0 0 0 2px!important;color:#173d31!important;
+}
+#methodologyPanel .umrah-accordion-chevron svg,
+#tableDefinitions .umrah-accordion-chevron svg{
+  width:24px!important;height:24px!important;stroke-width:2.4!important;
+}
+#tableDefinitions{box-sizing:border-box;width:calc(100% - 48px);margin:0 24px 18px;border-top:1px solid #d2d6db;border-bottom:1px solid #d2d6db;background:#fff;overflow:hidden}
+#tableDefinitions .umrah-definitions-toggle{appearance:none;min-height:58px;padding:10px 18px;color:#173d31;background:#fff;border:0;font:700 15px/1.5 "IBM Plex Sans Arabic","IBM Plex Sans",Arial,sans-serif;cursor:pointer}
+#tableDefinitions .umrah-definitions-toggle:hover{background:#f3f4f6}
+#tableDefinitions .umrah-definitions-toggle:focus-visible{outline:3px solid #1b8354;outline-offset:-3px}
+#tableDefinitions .table-definitions-content[hidden]{display:none!important}
+#tableDefinitions .umrah-definitions-toggle[aria-expanded="true"] .umrah-accordion-chevron{transform:rotate(180deg)!important}
+@media(max-width:767px){#tableDefinitions{width:calc(100% - 20px)!important;margin:0 10px 12px!important}#tableDefinitions .umrah-definitions-toggle{min-height:52px;padding:9px 13px;font-size:14px}}
+</style>
+<script id="umrah-accordion-final-fix-script">
+(()=>{
+  const icon=()=>{const s=document.createElement('span');s.className='umrah-accordion-chevron';s.setAttribute('aria-hidden','true');s.innerHTML='<svg viewBox="0 0 24 24"><path d="m6.5 9 5.5 5.5L17.5 9"/></svg>';return s};
+
+  /* Replace the definitions <details> with a normal button-driven accordion. */
+  const old=document.getElementById('tableDefinitions');
+  if(old && old.tagName.toLowerCase()==='details'){
+    const content=old.querySelector('#tableDefinitionsContent');
+    const wrap=document.createElement('section');
+    wrap.id='tableDefinitions';
+    wrap.className='table-definitions';
+    const btn=document.createElement('button');
+    btn.type='button';btn.className='umrah-definitions-toggle';btn.setAttribute('aria-expanded','false');btn.setAttribute('aria-controls','tableDefinitionsContent');
+    const title=document.createElement('span');title.className='umrah-definitions-title';title.textContent='تعريفات المؤشرات والوحدات';
+    btn.append(title,icon());
+    if(content){content.hidden=true;wrap.append(btn,content)}else wrap.append(btn);
+    old.replaceWith(wrap);
+    btn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();const open=btn.getAttribute('aria-expanded')!=='true';btn.setAttribute('aria-expanded',String(open));if(content)content.hidden=!open});
+  }
+
+  /* Normalize methodology arrows and keep direct per-button click handlers. */
+  const normalizeMethod=()=>document.querySelectorAll('#methodologyPanel .nds-accordion-btn').forEach(btn=>{
+    let ch=btn.querySelector('.umrah-accordion-chevron');if(!ch){ch=icon();btn.appendChild(ch)}
+  });
+  normalizeMethod();
+  new MutationObserver(normalizeMethod).observe(document.getElementById('methodologyPanel')||document.body,{childList:true,subtree:true});
+})();
+</script>
+<style id="ux-spacing-polish-v11-final">
+/* Must remain last: Liferay and legacy newsletter styles otherwise re-open these gaps. */
+#main-content #dataTablePanel .dataset-nav{width:calc(100% - 48px)!important;margin:12px 24px 0!important;padding:0!important}
+#main-content #datasetNav .dataset-browser{gap:10px!important;padding:14px 16px!important;border-radius:12px!important}
+#main-content #datasetNav .dataset-domain-options{gap:8px!important}
+#main-content #datasetNav .dataset-domain-option{min-height:44px!important;padding:8px 12px!important}
+#main-content #datasetNav .dataset-table-choice{width:100%!important;max-width:none!important;padding:0!important;margin:0!important;gap:5px!important}
+#main-content #datasetNav #datasetTableSelect{min-height:44px!important;height:44px!important}
+#main-content #dataTablePanel .toolbar{width:calc(100% - 48px)!important;margin:12px 24px 0!important;padding:14px 16px!important;gap:12px!important;align-items:end!important;border-radius:12px!important}
+#main-content #dataTablePanel .toolbar .nds-form-header{min-height:20px!important;margin:0!important;padding:0!important}
+#main-content #dataTablePanel .toolbar .nds-form-control,#main-content #dataTablePanel .toolbar .nds-input{min-height:44px!important;height:44px!important}
+#main-content #dataTablePanel .toolbar-actions{align-self:end!important;gap:8px!important;margin:0!important}
+#main-content #dataTablePanel .table-heading{min-height:0!important;margin:0!important;padding:16px 24px 8px!important;gap:14px!important;align-items:center!important}
+#main-content #dataTablePanel .table-heading h3{margin:0!important;font-size:clamp(20px,2vw,27px)!important;line-height:1.45!important}
+#main-content #dataTablePanel .table-heading p{margin:3px 0 0!important;line-height:1.55!important}
+#main-content #dataTablePanel .table-heading-actions{flex:0 0 auto!important;gap:8px!important;padding:0!important;border:0!important}
+#main-content #dataTablePanel .results{margin:0!important;padding:7px 11px!important;border-radius:999px!important;background:#f3f4f6!important;line-height:1.35!important}
+#main-content #dataTablePanel .dataset-chart-toggle-row{margin:6px 24px 10px!important}
+#main-content #dataTablePanel .table-definitions{margin:8px 24px 10px!important}
+#main-content #dataTablePanel .table-wrap{margin:0 24px!important}
+#main-content #dataTablePanel .pagination{padding:12px 24px 18px!important}
+@media(max-width:900px){#main-content #dataTablePanel .toolbar{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}#main-content #dataTablePanel .toolbar .field.search{grid-column:1/-1!important}#main-content #dataTablePanel .toolbar-actions{grid-column:1/-1!important}}
+@media(max-width:600px){#main-content #dataTablePanel .dataset-nav,#main-content #dataTablePanel .toolbar{width:calc(100% - 20px)!important;margin-inline:10px!important}#main-content #datasetNav .dataset-browser{padding:11px!important}#main-content #dataTablePanel .toolbar{grid-template-columns:1fr!important;padding:11px!important;gap:9px!important}#main-content #dataTablePanel .toolbar .field.search,#main-content #dataTablePanel .toolbar-actions{grid-column:auto!important}#main-content #dataTablePanel .toolbar-actions{display:grid!important;grid-template-columns:1fr 1fr!important;width:100%!important}#main-content #dataTablePanel .toolbar-actions>*{min-width:0!important;width:100%!important}#main-content #dataTablePanel .table-heading{padding:14px 14px 8px!important;gap:9px!important}#main-content #dataTablePanel .table-heading h3{font-size:20px!important}#main-content #dataTablePanel .table-heading-actions{width:100%!important;justify-content:space-between!important}#main-content #dataTablePanel .results{font-size:12px!important;white-space:normal!important}#main-content #dataTablePanel .dataset-chart-toggle-row{margin:6px 14px 10px!important}#main-content #dataTablePanel .table-definitions{margin:8px 14px 10px!important}#main-content #dataTablePanel .table-wrap{margin-inline:14px!important}#main-content #dataTablePanel .pagination{padding:10px 14px 16px!important}}
+</style>
+<style id="selection-pagination-visibility-v11">
+#dataTablePanel.is-waiting-for-dataset .pagination{display:none!important}
+#main-content #dataTablePanel .selection-gated-pagination[hidden]{display:none!important}
+#dataTablePanel.is-waiting-for-dataset .table-heading,
+#dataTablePanel.is-waiting-for-dataset .dataset-chart-toggle-row,
+#dataTablePanel.is-waiting-for-dataset .table-definitions,
+#dataTablePanel.is-waiting-for-dataset .table-wrap,
+#dataTablePanel.is-waiting-for-dataset .table-source-note,
+#dataTablePanel.is-waiting-for-dataset>.note{display:none!important}
+</style>
+<script id="selection-pagination-visibility-v11">
+(()=>{
+  const init=()=>{
+    const panel=document.getElementById('dataTablePanel'),nav=document.getElementById('datasetNav');
+    if(!panel||!nav)return;
+    let chosen=false;
+    const sync=()=>{
+      const browser=nav.querySelector('.dataset-browser');
+      const waiting=!chosen||browser?.classList.contains('is-awaiting-domain');
+      panel.classList.toggle('is-waiting-for-dataset',waiting);
+      const pagination=panel.querySelector('.pagination');
+      if(pagination){pagination.hidden=waiting;pagination.setAttribute('aria-hidden',String(waiting))}
+    };
+    nav.addEventListener('click',event=>{
+      if(event.target.closest('.dataset-domain-option')){chosen=true;queueMicrotask(sync)}
+    });
+    nav.addEventListener('change',event=>{
+      if(event.target.matches('#datasetGroupSelect,#datasetTableSelect')){chosen=Boolean(document.getElementById('datasetGroupSelect')?.value);queueMicrotask(sync)}
+    });
+    new MutationObserver(sync).observe(nav,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden']});
+    panel.classList.add('is-waiting-for-dataset');
+    sync();
+  };
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+</script>
