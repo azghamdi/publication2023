@@ -2736,6 +2736,40 @@ addEventListener('load',send);new ResizeObserver(send).observe(document.getEleme
   #dataTablePanel .dataset-chart-toggle-row{flex-direction:column!important}
 }
 </style>
+<style id="toolbar-nds-input-full-width-fix">
+/* سكربت "هوية DGA" (nds-form) يحوّل كل input/select بالشريط العلوي إلى بنية جديدة
+   (.nds-form-container > .nds-form-control > .nds-input) وأثناء ذلك يحذف class="control"
+   من العنصر نفسه (input.classList.remove('control'))، وكانت كل قواعد "عرض 100%" مربوطة
+   بـ.control فقط. النتيجة: مربع البحث "ابحث في جميع الأعمدة" وقوائم الفلاتر ("تحمل
+   التكاليف" وغيرها) ترجع لحجمها الافتراضي الضيق من المتصفح بدل ملء عرض الحقل، فيظهر
+   فراغ فاضي واضح بين الحقول (نفس الفراغ اللي ظهر بلقطة المستخدم). هذا يعيد عرض 100%
+   لأي عنصر nds-input داخل شريط الأدوات، ويرتب مربع البحث + زر المسح (nds-form-action)
+   بجانب بعض بدل ما ينزل زر المسح لسطر ثاني. */
+#dataTablePanel .toolbar .nds-form-control{
+  display:flex!important;
+  align-items:center!important;
+  width:100%!important;
+  box-sizing:border-box!important;
+}
+#dataTablePanel .toolbar .nds-form-control .nds-input{
+  flex:1 1 auto!important;
+  width:100%!important;
+  min-width:0!important;
+  box-sizing:border-box!important;
+}
+#dataTablePanel .toolbar .nds-form-action{
+  flex:0 0 auto!important;
+}
+</style>
+<style id="toolbar-actions-label-hide">
+/* عنوان "إجراءات البيانات" فوق أزرار (إعادة ضبط / نسخ رابط / تنزيل) كان مخفيًا فقط
+   بعرض 1101px فأكثر (قاعدة قديمة داخل @media(min-width:1101px)), فيظهر بكل الأحجام
+   الأصغر (الجوال والأجهزة اللوحية) — وهذا هو نفس التناقض اللي لاحظه المستخدم سابقًا
+   (ظاهر بالجوال، مختفٍ بسطح المكتب). بطلب صريح، نخفيه نهائيًا بكل الأحجام. */
+#dataTablePanel .toolbar-actions-label{
+  display:none!important;
+}
+</style>
 </body>
 </html>
 
