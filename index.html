@@ -2388,6 +2388,46 @@ addEventListener('load',send);new ResizeObserver(send).observe(document.getEleme
     }
   }
 </style>
+<style id="mobile-table-sort-icon-spacing-v37">
+  /* Keep every sort icon visually attached to its own column label. */
+  #dataTablePanel .data-table thead th button{
+    display:flex!important;
+    flex-direction:row!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:8px!important;
+    width:100%!important;
+    min-height:40px!important;
+    padding:2px 6px!important;
+  }
+  #dataTablePanel .data-table thead th:first-child button{
+    justify-content:flex-start!important;
+  }
+  #dataTablePanel .data-table thead th button .table-column-label{
+    flex:0 1 auto!important;
+    width:auto!important;
+    min-width:0!important;
+  }
+  #dataTablePanel .data-table thead th button .table-sort-icon{
+    position:static!important;
+    inset:auto!important;
+    flex:0 0 18px!important;
+    width:18px!important;
+    height:18px!important;
+  }
+  @media(max-width:600px){
+    #dataTablePanel .data-table thead th{
+      border-inline-start:1px solid #cbd3cf!important;
+    }
+    #dataTablePanel .data-table thead th:first-child{
+      border-inline-start:1px solid #b8c3bd!important;
+    }
+    #dataTablePanel .table-wrap.is-summary-table .data-table thead th button{
+      padding-inline:5px!important;
+      gap:6px!important;
+    }
+  }
+</style>
 </body>
 </html>
 <style id="umrah-accordion-final-fix">
