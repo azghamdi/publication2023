@@ -961,8 +961,8 @@ body.chart-modal-open,body.repi-modal-open{overflow:hidden!important}
 (()=>{const grid=document.querySelector('#methodologyPanel .methodology-grid');if(!grid||grid.dataset.accordionReady)return;grid.dataset.accordionReady='true';const cards=[...grid.querySelectorAll(':scope>.method-card')];cards.forEach((card,index)=>{const heading=card.querySelector(':scope>h3');if(!heading)return;const details=document.createElement('details');details.className='method-accordion';if(index===0)details.open=true;const summary=document.createElement('summary');summary.textContent=heading.textContent;const body=document.createElement('div');body.className='method-accordion-body';[...card.childNodes].forEach(node=>{if(node!==heading)body.appendChild(node)});details.append(summary,body);card.replaceWith(details)});grid.addEventListener('toggle',event=>{const opened=event.target;if(!(opened instanceof HTMLDetailsElement)||!opened.open)return;grid.querySelectorAll('.method-accordion[open]').forEach(item=>{if(item!==opened)item.open=false})},true)})();
 </script>
 <script id="liferay-iframe-auto-height">
-(()=>{const send=()=>parent.postMessage({type:'umrah-newsletter-height',height:Math.ceil(document.documentElement.scrollHeight)},'*');
-addEventListener('load',send);new ResizeObserver(send).observe(document.body);document.addEventListener('click',()=>setTimeout(send,120),true);})();
+(()=>{let last=0;const send=()=>{const main=document.getElementById('main-content');if(!main)return;const box=main.getBoundingClientRect(),height=Math.ceil(box.bottom+scrollY+20);if(Math.abs(height-last)<2)return;last=height;parent.postMessage({type:'umrah-newsletter-height',height},'*')};
+addEventListener('load',send);new ResizeObserver(send).observe(document.getElementById('main-content')||document.body);document.addEventListener('click',()=>{setTimeout(send,80);setTimeout(send,300)},true);document.addEventListener('change',()=>setTimeout(send,100),true);})();
 </script>
 </body>
 </html>
