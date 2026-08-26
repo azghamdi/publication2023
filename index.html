@@ -1392,7 +1392,7 @@ body.chart-modal-open,body.repi-modal-open{overflow:hidden!important}
       };
       const columnDefinition=column=>definitionText[column]||(column.includes('(%)')?'نسبة هذا التصنيف من الإجمالي وفق بيانات النشرة الرسمية.':column.includes('الإجمالي')?'إجمالي العدد ضمن التصنيفات المبينة في الجدول.':column.includes('ذكور')||column.includes('إناث')?'عدد الأفراد حسب الجنس والتصنيف المبين.':'قيمة إحصائية منشورة ضمن بيانات النشرة الرسمية.');
       const columnUnit=column=>column.includes('(%)')?'نسبة مئوية (%)':column==='المؤشر'||column.includes('نوع')||column.includes('فئات')||column.includes('الشهر')||column.includes('المنطقة')||column.includes('التكاليف')?'تصنيف':'عدد (فرد)';
-      function renderDefinitions(){const d=data.datasets[state.dataset],content=document.getElementById('tableDefinitionsContent'),caption=document.getElementById('tableCaption');if(caption)caption.textContent=`${d.title} — جدول (${d.id})`;if(content)content.innerHTML=`<dl>${d.columns.map((column,i)=>`<dt id="column-definition-${i}">${column}</dt><dd>${columnDefinition(column)}</dd><dd class="definition-unit"><span class="sr-only">الوحدة: </span>${columnUnit(column)}</dd>`).join('')}</dl>`}
+      function renderDefinitions(){const d=data.datasets[state.dataset],content=document.getElementById('tableDefinitionsContent'),caption=document.getElementById('tableCaption');if(caption)caption.textContent=d.title;if(content)content.innerHTML=`<dl>${d.columns.map((column,i)=>`<dt id="column-definition-${i}">${column}</dt><dd>${columnDefinition(column)}</dd><dd class="definition-unit"><span class="sr-only">الوحدة: </span>${columnUnit(column)}</dd>`).join('')}</dl>`}
       function renderNav(){
         const active=data.datasets[state.dataset],groups=data.groups||[...new Set(data.datasets.map(d=>d.group))];
         document.getElementById('dataTablePanel')?.classList.toggle('dataset-awaiting-selection',!userSelectedGroup);
@@ -1452,64 +1452,6 @@ body.chart-modal-open,body.repi-modal-open{overflow:hidden!important}
         const blob=new Blob(['\ufeff'+workbook],{type:'application/vnd.ms-excel;charset=utf-8'}),anchor=document.createElement('a'),url=URL.createObjectURL(blob);
         anchor.href=url;anchor.download=d.shortTitle+'-A-right-final-v3.xls';anchor.style.display='none';document.body.appendChild(anchor);anchor.click();setTimeout(()=>{anchor.remove();URL.revokeObjectURL(url)},1800);
       };
-      window.downloadFilteredExcel=async()=>{
-        const d=data.datasets[state.dataset],rows=filteredRows();
-        const suggestedFileName=(String(d.shortTitle||'umrah-data').replace(/[\\/:*?"<>|]/g,' ').trim()||'umrah-data')+'-filtered.xlsx';
-        let fileHandle=null;
-        if(window.isSecureContext&&typeof window.showSaveFilePicker==='function'){
-          try{
-            fileHandle=await window.showSaveFilePicker({
-              suggestedName:suggestedFileName,
-              types:[{description:'Microsoft Excel Workbook',accept:{'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':['.xlsx']}}]
-            });
-          }catch(error){
-            if(error?.name==='AbortError')return;
-            console.warn('تعذر فتح نافذة حفظ Excel، سيتم استخدام التنزيل المباشر.',error);
-          }
-        }
-        const loadExcelJS=()=>new Promise((resolve,reject)=>{
-          if(window.ExcelJS)return resolve(window.ExcelJS);
-          const existing=document.querySelector('script[data-exceljs-loader]');
-          if(existing){existing.addEventListener('load',()=>resolve(window.ExcelJS),{once:true});existing.addEventListener('error',reject,{once:true});return}
-          const script=document.createElement('script');script.src='https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';script.dataset.exceljsLoader='true';script.onload=()=>resolve(window.ExcelJS);script.onerror=()=>reject(new Error('تعذر تحميل مكتبة Excel'));document.head.appendChild(script)
-        });
-        try{
-          const ExcelJS=await loadExcelJS(),workbook=new ExcelJS.Workbook();
-          workbook.creator='الهيئة العامة للإحصاء';workbook.company='General Authority for Statistics';workbook.created=new Date();
-          const fontArabic='IBM Plex Sans Arabic',fontLatin='IBM Plex Sans';
-          const cleanName=String(d.shortTitle||'النتائج').replace(/[\\/?*\[\]:]/g,' ').slice(0,31);
-          const sheet=workbook.addWorksheet(cleanName,{views:[{rightToLeft:true,state:'frozen',ySplit:8}]});
-          sheet.properties.defaultRowHeight=24;sheet.pageSetup={orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:0};
-          const lastCol=Math.max(3,d.columns.length),logoData=String(window.GASTAT_EXPORT_LOGO||'').split(',')[1];
-          if(logoData){const logoId=workbook.addImage({base64:logoData,extension:'png'});sheet.addImage(logoId,{tl:{col:0.08,row:0.15},ext:{width:300,height:78}})}
-          sheet.mergeCells(4,1,4,lastCol);const title=sheet.getCell(4,1);title.value=d.title;title.font={name:fontArabic,size:18,bold:true,color:{argb:'FF0B3B2E'}};title.alignment={horizontal:'right',vertical:'middle',readingOrder:'rtl'};title.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEEF8F3'}};sheet.getRow(4).height=38;
-          sheet.mergeCells(5,1,5,lastCol);const subtitle=sheet.getCell(5,1);subtitle.value='إحصاءات العمرة — الربع الأول 2026';subtitle.font={name:fontArabic,size:11,color:{argb:'FF52675F'}};subtitle.alignment={horizontal:'right',readingOrder:'rtl'};
-          const filterParts=[state.search?`بحث: ${state.search}`:'',...Object.entries(state.filters).filter(([,value])=>value).map(([name,value])=>`${name}: ${value}`)].filter(Boolean),filterSummary=filterParts.length?filterParts.join(' | '):'دون فلاتر إضافية';
-          sheet.mergeCells(6,1,6,lastCol);const summary=sheet.getCell(6,1);summary.value=`النتائج الحالية: ${rows.length} صفًا  |  ${filterSummary}`;summary.font={name:fontArabic,size:10,color:{argb:'FF52675F'}};summary.alignment={horizontal:'right',readingOrder:'rtl'};
-          const headerRow=sheet.getRow(8);d.columns.forEach((column,index)=>{const cell=headerRow.getCell(index+1);cell.value=column;cell.font={name:fontArabic,size:11,bold:true,color:{argb:'FFFFFFFF'}};cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1B8354'}};cell.alignment={horizontal:'center',vertical:'middle',wrapText:true,readingOrder:'rtl'};cell.border={bottom:{style:'thin',color:{argb:'FF0F6845'}}}});headerRow.height=32;
-          rows.forEach((values,rowIndex)=>{const row=sheet.addRow(values);row.height=24;values.forEach((value,columnIndex)=>{const cell=row.getCell(columnIndex+1),numeric=typeof value==='number'&&Number.isFinite(value),percent=d.percentColumns?.includes(d.columns[columnIndex])||d.percentColumns?.includes(columnIndex);cell.font={name:numeric?fontLatin:fontArabic,size:11,color:{argb:'FF243A32'},bold:columnIndex===0};cell.alignment={horizontal:columnIndex===0?'right':'center',vertical:'middle',readingOrder:columnIndex===0?'rtl':'ltr'};if(numeric)cell.numFmt=percent?'0.0%':(Number.isInteger(value)?'#,##0':'#,##0.##');if(rowIndex%2)cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF7FAF8'}};cell.border={bottom:{style:'hair',color:{argb:'FFDCE6E1'}}}})});
-          d.columns.forEach((column,index)=>{sheet.getColumn(index+1).width=index===0?34:Math.max(15,Math.min(25,String(column).length+6))});sheet.autoFilter={from:{row:8,column:1},to:{row:8,column:d.columns.length}};
-          const info=workbook.addWorksheet('معلومات البيانات',{views:[{rightToLeft:true}]});info.getColumn(1).width=28;info.getColumn(2).width=70;
-          if(logoData){const logoId=workbook.addImage({base64:logoData,extension:'png'});info.addImage(logoId,{tl:{col:0.05,row:0.1},ext:{width:300,height:78}})}
-          const infoRows=[['اسم النشرة','إحصاءات العمرة'],['الجدول',d.shortTitle],['وصف الجدول',d.title],['الفترة المرجعية',d.description],['نطاق التنزيل','النتائج الحالية بعد تطبيق الفلاتر'],['عدد الصفوف',rows.length],['الفلاتر المطبقة',filterSummary],['وحدات القياس','أعداد ونسب مئوية (%)'],['تاريخ إنشاء الملف',new Intl.DateTimeFormat('en-CA').format(new Date())]];
-          info.mergeCells('A4:B4');const infoTitle=info.getCell('A4');infoTitle.value='معلومات البيانات المنزّلة';infoTitle.font={name:fontArabic,size:17,bold:true,color:{argb:'FF0B3B2E'}};infoTitle.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEEF8F3'}};infoTitle.alignment={horizontal:'right',readingOrder:'rtl'};info.getRow(4).height=36;
-          infoRows.forEach((pair,index)=>{const row=info.getRow(index+6);row.values=pair;row.getCell(1).font={name:fontArabic,size:11,bold:true,color:{argb:'FF166A45'}};row.getCell(1).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF4F8F6'}};row.getCell(2).font={name:fontArabic,size:11,color:{argb:'FF243A32'}};row.eachCell(cell=>{cell.alignment={horizontal:'right',vertical:'middle',wrapText:true,readingOrder:'rtl'};cell.border={bottom:{style:'thin',color:{argb:'FFD7E2DC'}}}});row.height=28});
-          const publicNewsletterUrl='https://azghamdi.github.io/publication2023/';
-          const links=[['صفحة العرض التفاعلية',publicNewsletterUrl],['النشرة الكاملة','https://www.stats.gov.sa/ar/statistics-tabs?category=2197199&tab=436312&year=127357'],['المنهجية والجودة','https://www.stats.gov.sa/ar/w/methodology-and-quality-report-for-umrah-statistics-q1-2026?tab=436318&category=124334']];
-          links.forEach((pair,index)=>{const row=info.getRow(infoRows.length+7+index);row.getCell(1).value=pair[0];row.getCell(2).value={text:'فتح الرابط',hyperlink:pair[1]};row.eachCell(cell=>{cell.font={name:fontArabic,size:11,bold:true,color:{argb:'FF166A45'},underline:true};cell.alignment={horizontal:'right',readingOrder:'rtl'}})});
-          const buffer=await workbook.xlsx.writeBuffer(),blob=new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-          if(fileHandle){
-            const writable=await fileHandle.createWritable();
-            await writable.write(blob);
-            await writable.close();
-          }else{
-            const anchor=document.createElement('a'),url=URL.createObjectURL(blob);
-            anchor.href=url;anchor.download=suggestedFileName;anchor.style.display='none';document.body.appendChild(anchor);anchor.click();setTimeout(()=>{anchor.remove();URL.revokeObjectURL(url)},1800);
-          }
-          window.showDownloadToast?.('تم حفظ ملف Excel بنجاح')
-        }catch(error){console.error(error);alert('تعذر إنشاء ملف Excel الحديث. تحقق من الاتصال بالإنترنت ثم أعد المحاولة.')}
-      };
-
       document.querySelector('#filteredExcelBtn').onclick=()=>window.downloadFilteredExcel();els.search.addEventListener('input',()=>{state.search=normalize(els.search.value);state.page=1;renderTable()});els.pageSize.addEventListener('change',()=>{state.pageSize=Number(els.pageSize.value);state.page=1;renderTable()});document.querySelector('#resetBtn').onclick=()=>{state.search='';state.filters={};state.sort={column:null,direction:1};state.page=1;els.search.value='';renderAll()};const saveBlob=(blob,name)=>{const a=document.createElement('a'),url=URL.createObjectURL(blob);a.href=url;a.download=name;a.style.display='none';document.body.appendChild(a);a.click();setTimeout(()=>{a.remove();URL.revokeObjectURL(url)},1800)};const machinePayload=()=>{const d=data.datasets[state.dataset],rows=filteredRows(),records=rows.map(row=>Object.fromEntries(d.columns.map((column,i)=>[column,row[i]])));return{d,rows,records,payload:{meta:{datasetId:'SA-GASTAT-UMRAH-Q1-2026-'+(state.dataset+1),title:d.title,description:d.description,producer:'الهيئة العامة للإحصاء — المملكة العربية السعودية',source:data.source,generatedAt:new Date().toISOString(),language:'ar',filters:{search:state.search,...state.filters},rowCount:records.length},data:records}}};document.querySelector('#exportBtn').onclick=()=>{const d=data.datasets[state.dataset],rows=filteredRows(),csv='\ufeff'+[d.columns,...rows].map(r=>r.map(v=>'"'+String(v??'').replaceAll('"','""')+'"').join(',')).join('\r\n');saveBlob(new Blob([csv],{type:'text/csv;charset=utf-8'}),d.shortTitle+'-filtered.csv')};document.querySelector('#jsonExportBtn').onclick=()=>{const {d,payload}=machinePayload();saveBlob(new Blob([JSON.stringify(payload,null,2)],{type:'application/json;charset=utf-8'}),d.shortTitle+'-filtered.json')};document.querySelector('#apiExportBtn').onclick=()=>{const {d,payload}=machinePayload(),response={status:200,apiVersion:'1.0',self:location.href.split('#')[0],...payload};saveBlob(new Blob([JSON.stringify(response,null,2)],{type:'application/json;charset=utf-8'}),d.shortTitle+'-api-response.json')};document.querySelector('#sdmxExportBtn').onclick=()=>{const {d,rows}=machinePayload(),header=['STRUCTURE','STRUCTURE_ID','ACTION',...d.columns],body=rows.map(row=>['dataflow','SA-GASTAT:UMRAH_Q1_2026(1.0)','I',...row]),csv='\ufeff'+[header,...body].map(r=>r.map(v=>'"'+String(v??'').replaceAll('"','""')+'"').join(',')).join('\r\n');saveBlob(new Blob([csv],{type:'text/csv;charset=utf-8'}),d.shortTitle+'-sdmx.csv')};const shareBtn=document.querySelector('#shareBtn');if(shareBtn)shareBtn.onclick=async()=>{const share={title:document.title,text:'جداول إحصاءات العمرة — الربع الأول 2026',url:location.href};if(navigator.share)await navigator.share(share);else{await navigator.clipboard.writeText(location.href);alert('تم نسخ رابط الصفحة')}};document.querySelectorAll('[data-copy-target]').forEach(button=>{button.addEventListener('click',async()=>{const target=document.getElementById(button.dataset.copyTarget);const text=target.innerText.trim();try{await navigator.clipboard.writeText(text)}catch(error){const area=document.createElement('textarea');area.value=text;area.style.position='fixed';area.style.opacity='0';document.body.appendChild(area);area.select();document.execCommand('copy');area.remove()}const original=button.textContent;button.textContent=button.closest('[lang="en"]')?'Copied':'تم النسخ';button.classList.add('copied');setTimeout(()=>{button.textContent=original;button.classList.remove('copied')},1600)})});const buildViewParams=()=>{const d=data.datasets[state.dataset],params=new URLSearchParams();if(document.getElementById('methodologyTab')?.getAttribute('aria-selected')==='true')params.set('view','methodology');params.set('dataset',String(state.dataset));if(els.search.value)params.set('search',els.search.value);(d.filters||[]).forEach((colName,i)=>{const value=state.filters[colName];if(value)params.set('f'+i,value)});if(state.sort.column!==null)params.set('sort',state.sort.column+':'+state.sort.direction);if(state.page>1)params.set('page',String(state.page));if(state.pageSize!==10)params.set('pageSize',String(state.pageSize));return params};const copyText=async text=>{try{await navigator.clipboard.writeText(text)}catch(error){const area=document.createElement('textarea');area.value=text;area.style.position='fixed';area.style.opacity='0';document.body.appendChild(area);area.select();document.execCommand('copy');area.remove()}};const copyViewLinkBtn=document.querySelector('#copyViewLinkBtn');if(copyViewLinkBtn)copyViewLinkBtn.onclick=async()=>{const url=location.href.split('#')[0]+'#'+buildViewParams().toString();await copyText(url);window.showDownloadToast?.('تم نسخ رابط العرض بنجاح')};const restoredFromHash=(()=>{if(!location.hash)return false;let params;try{params=new URLSearchParams(location.hash.slice(1))}catch(error){return false}if(![...params.keys()].length)return false;const datasetIndex=Number(params.get('dataset'));let restored=false;if(Number.isInteger(datasetIndex)&&data.datasets[datasetIndex]){state.dataset=datasetIndex;userSelectedGroup=true;restored=true}const d=data.datasets[state.dataset];if(params.has('search')){const value=params.get('search');els.search.value=value;state.search=normalize(value)}(d.filters||[]).forEach((colName,i)=>{const value=params.get('f'+i);if(value)state.filters[colName]=value});if(params.has('sort')){const[column,direction]=params.get('sort').split(':');if(column!=='')state.sort={column:Number(column),direction:Number(direction)||1}}if(params.has('page'))state.page=Math.max(1,Number(params.get('page'))||1);if(params.has('pageSize')){const size=Number(params.get('pageSize'));if([10,20,50,100].includes(size)){state.pageSize=size;if(els.pageSize)els.pageSize.value=String(size)}}if(params.get('view')==='methodology')switchView('methodology');return restored})();renderAll();window.__umrahDatasetPreselected=true;
     })();
   </script>
@@ -2644,6 +2586,45 @@ addEventListener('load',send);new ResizeObserver(send).observe(document.getEleme
   .release-highlight-item h3{font-size:12px!important;line-height:1.3!important}
   .release-highlight-item strong{font-size:clamp(20px,6.5vw,25px)!important;line-height:1.1!important;margin:0!important}
   .release-highlight-item p{font-size:10.5px!important;line-height:1.3!important;margin:1px 0 0!important}
+}
+</style>
+<style id="selection-toolbar-clarity-final">
+/* توضيح الفصل بين "أي بيانات أعرض" (صندوق اختيار القسم/الجدول) و"أدوات التعامل مع
+   الجدول الحالي" (شريط البحث والتصفية والتنزيل)، بعد ملاحظة أن تلاصقهما البصري يجعل
+   المستخدم يقرأهما ككتلة واحدة مزدحمة بدل مفهومين منفصلين. */
+
+/* 1) فصل أوضح بين صندوق الاختيار وشريط الأدوات: مسافة أكبر وخلفية مختلفة بدل بطاقتين متطابقتين. */
+#main-content #dataTablePanel .toolbar{margin-top:22px!important;background:#fff!important;border-color:#e6e9e7!important;box-shadow:none!important}
+
+/* 2) تخفيف وزن الأزرار الثانوية (نسخ رابط العرض، إعادة ضبط) مقابل زر "تنزيل البيانات" الأساسي المصمت. */
+#dataTablePanel .toolbar-btn-secondary{border-color:#e3e7e5!important;background:#fff!important;color:#5b6a63!important;box-shadow:none!important}
+
+/* 3) إخفاء ترقيم "1 / 2" الذي كان يوحي بخطوات غير مكتملة، بعد أن أصبح أول قسم وجدول محددين تلقائيًا من بداية التحميل. */
+#dataTablePanel .dataset-browser .nds-form-header>span::before,
+#datasetNav .dataset-domain-heading::before{display:none!important}
+</style>
+<style id="table-caption-restore-sr-only-final">
+/* #tableCaption يحمل class="sr-only" (مقصود إخفاؤه بصريًا لقارئ الشاشة فقط، فالعنوان
+   المرئي الحقيقي هو h3#tableTitle أعلى الجدول). طبقات CSS سابقة أعطته خلفية وحشوة
+   وposition:sticky محليًا بتخصيص أعلى من .sr-only نفسها، فصار يظهر فعليًا فوق الجدول —
+   خصوصًا في الجداول العريضة على الجوال حيث كان يظهر مقطوعًا/متراكبًا مع رأس الجدول لأن
+   عرضه الفعلي يطابق عرض الجدول الكامل غير المرئي كله. إعادته لنمط "مخفي بصريًا" الآمن
+   يحل المشكلتين معًا. */
+#dataTablePanel .data-table caption,
+.table-wrap .data-table caption{
+  position:absolute!important;
+  width:1px!important;
+  height:1px!important;
+  min-width:0!important;
+  max-width:1px!important;
+  padding:0!important;
+  margin:-1px!important;
+  overflow:hidden!important;
+  clip:rect(0,0,0,0)!important;
+  white-space:nowrap!important;
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
 }
 </style>
 </body>
