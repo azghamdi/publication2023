@@ -1422,7 +1422,7 @@ body.chart-modal-open,body.repi-modal-open{overflow:hidden!important}
         if(!hasGroups||compactHeader)return '<tr>'+parsed.map(item=>{const label=compactHeader&&item.group?`${item.group} — ${item.label}`:item.label;return `<th scope="col" aria-sort="${state.sort.column===item.index?(state.sort.direction===1?'ascending':'descending'):'none'}" aria-describedby="column-definition-${item.index}">${button(item,label)}</th>`}).join('')+'</tr>';
         let top='',bottom='',i=0;while(i<parsed.length){const item=parsed[i];if(!item.group){top+=`<th scope="col" rowspan="2" aria-sort="${state.sort.column===item.index?(state.sort.direction===1?'ascending':'descending'):'none'}">${button(item)}</th>`;i++;continue}let count=1;while(i+count<parsed.length&&parsed[i+count].group===item.group)count++;top+=`<th class="column-group" scope="colgroup" colspan="${count}">${item.group}</th>`;for(let j=0;j<count;j++){const child=parsed[i+j];bottom+=`<th scope="col" aria-sort="${state.sort.column===child.index?(state.sort.direction===1?'ascending':'descending'):'none'}">${button(child)}</th>`}i+=count}return `<tr class="column-groups">${top}</tr><tr>${bottom}</tr>`;
       }
-      function renderTable(){const d=data.datasets[state.dataset];els.title.textContent=d.title;els.desc.textContent=d.description.replace(/\s*—\s*جدول\s*\([^)]*\)\s*$/,'');renderDefinitions();els.head.innerHTML=tableHeader(d);els.head.querySelectorAll('button').forEach(b=>b.onclick=()=>{const c=Number(b.dataset.sort);state.sort=state.sort.column===c?{column:c,direction:-state.sort.direction}:{column:c,direction:1};renderTable()});const rows=filteredRows();const pages=Math.max(1,Math.ceil(rows.length/state.pageSize));if(state.page>pages)state.page=pages;const start=(state.page-1)*state.pageSize;const visible=rows.slice(start,start+state.pageSize);els.count.textContent=rows.length?`عرض ${start+1}–${Math.min(start+state.pageSize,rows.length)} من ${rows.length} صفًا`:'لا توجد نتائج';const dlCount=document.querySelector('#filteredDownloadCount');if(dlCount)dlCount.textContent=`(${rows.length})`;els.body.innerHTML=visible.length?visible.map(r=>`<tr class="${String(r[0]).includes('الإجمالي')?'row-total':''}">`+r.map((v,i)=>{const num=Number(v),classes=[];if(v!==''&&!Number.isNaN(num))classes.push('numeric');return i===0?`<th scope="row" class="${classes.join(' ')}">${format(v,d.columns[i],d,i)}</th>`:`<td class="${classes.join(' ')}">${format(v,d.columns[i],d,i)}</td>`}).join('')+'</tr>').join(''):'<tr><td class="empty" colspan="'+d.columns.length+'">لم يتم العثور على بيانات مطابقة.</td></tr>';renderPager(pages)}
+      function renderTable(){const d=data.datasets[state.dataset];els.title.textContent=d.title;els.desc.textContent=d.description.replace(/\s*—\s*جدول\s*\([^)]*\)\s*$/,'');renderDefinitions();els.head.innerHTML=tableHeader(d);els.head.querySelectorAll('button').forEach(b=>b.onclick=()=>{const c=Number(b.dataset.sort);state.sort=state.sort.column===c?{column:c,direction:-state.sort.direction}:{column:c,direction:1};renderTable()});const rows=filteredRows();const pages=Math.max(1,Math.ceil(rows.length/state.pageSize));if(state.page>pages)state.page=pages;const start=(state.page-1)*state.pageSize;const visible=rows.slice(start,start+state.pageSize);els.count.textContent=rows.length?`عرض ${start+1}–${Math.min(start+state.pageSize,rows.length)} من ${rows.length} صفًا`:'لا توجد نتائج';const dlCount=document.querySelector('#filteredDownloadCount');if(dlCount)dlCount.textContent=`(${rows.length})`;els.body.innerHTML=visible.length?visible.map(r=>`<tr class="${String(r[0]).includes('إجمالي')?'row-total':''}">`+r.map((v,i)=>{const num=Number(v),classes=[];if(v!==''&&!Number.isNaN(num))classes.push('numeric');return i===0?`<th scope="row" class="${classes.join(' ')}">${format(v,d.columns[i],d,i)}</th>`:`<td class="${classes.join(' ')}">${format(v,d.columns[i],d,i)}</td>`}).join('')+'</tr>').join(''):'<tr><td class="empty" colspan="'+d.columns.length+'">لم يتم العثور على بيانات مطابقة.</td></tr>';renderPager(pages)}
       const renderTableBase=renderTable;renderTable=function(){renderTableBase();const datasetName=document.getElementById('developerDatasetName'),rowCount=document.getElementById('developerRowCount');if(datasetName)datasetName.textContent=data.datasets[state.dataset].shortTitle;if(rowCount)rowCount.textContent=String(filteredRows().length)};
       function renderPager(pages){els.pager.innerHTML='';const add=(label,page,disabled=false,active=false)=>{const b=document.createElement('button');b.type='button';b.className='page-btn'+(active?' active':'');b.textContent=label;b.disabled=disabled;b.onclick=()=>{state.page=page;renderTable();document.querySelector('.explorer').scrollIntoView({behavior:'smooth',block:'start'})};els.pager.appendChild(b)};add('‹',Math.max(1,state.page-1),state.page===1);let from=Math.max(1,state.page-2),to=Math.min(pages,from+4);from=Math.max(1,to-4);for(let p=from;p<=to;p++)add(String(p),p,false,p===state.page);add('›',Math.min(pages,state.page+1),state.page===pages)}
       function renderAll(){renderNav();renderFilters();renderTable()}
@@ -2625,6 +2625,42 @@ addEventListener('load',send);new ResizeObserver(send).observe(document.getEleme
   border:0!important;
   background:transparent!important;
   box-shadow:none!important;
+}
+</style>
+<style id="dga-table-identity-alignment">
+/* مطابقة هوية جدول DgaDataTable الرسمي (لقطة فعلية من المنصة): قيم الخلايا بلون العلامة
+   الأخضر (نفس أخضر SA-600 المستخدم في كل الروابط والأزرار بالصفحة) بدل الرمادي الداكن
+   المحايد. عمود التسمية الأول (رأس الصف) وصف الرأس يبقيان بلا تغيير — هذي أدوار مختلفة
+   دلاليًا عن خلايا "Cell" في مثال DGA. */
+#dataTablePanel .data-table tbody td{color:#1b8354!important}
+#dataTablePanel .data-table tbody tr:hover td{color:#166a45!important}
+</style>
+<style id="sticky-row-header-opaque-fix">
+/* عمود اسم الصف (th[scope="row"]) هو العنصر الحقيقي اللي يثبّت (sticky) عند التمرير
+   الأفقي للجداول العريضة على الجوال — عدة طبقات CSS سابقة كانت تحاول إعطاءه خلفية
+   معتمة وz-index عبر selector يستهدف "td:first-child"، وهذا لا يطابق شيء أبدًا لأن
+   العنصر الفعلي <th> وليس <td>. النتيجة: العمود يعتمد فقط على خلفية موروثة (inherit)
+   بلا z-index كافٍ، فتظهر أرقام الأعمدة المجاورة متسربة/متراكبة معه أثناء التمرير —
+   بالضبط الخلل اللي ظهر باللقطة. هذا يعطيه خلفية معتمة صريحة وz-index أعلى من أي خلية
+   عادية بجانبه، بصرف النظر عن حالة الصف (عادي/متبادل/فوق المؤشر). */
+#dataTablePanel .data-table tbody th[scope="row"]{
+  position:sticky!important;
+  right:0!important;
+  z-index:5!important;
+  background:#fff!important;
+  box-shadow:-2px 0 4px -2px rgba(36,58,50,.18)!important;
+}
+#dataTablePanel .data-table tbody tr:nth-child(even) th[scope="row"]{background:#fbfcfb!important}
+#dataTablePanel .data-table tbody tr:hover th[scope="row"]{background:#eef8f3!important}
+</style>
+<style id="row-total-bold-final">
+/* صفوف "الإجمالي" (تحمل class="row-total" — كان هذا يفشل يتفعّل بسبب فحص نصي كان
+   يبحث عن "الإجمالي" بأل التعريف تحديدًا، بينما بيانات الجدول الفعلية تكتب "إجمالي
+   المعتمرين" بدون "ال" — صححته في الجافاسكربت. هذا يضمن بروز الأرقام بالبولد فعليًا
+   بصرف النظر عن أي تعارض CSS سابق). */
+#dataTablePanel .data-table tbody tr.row-total td,
+#dataTablePanel .data-table tbody tr.row-total th[scope="row"]{
+  font-weight:800!important;
 }
 </style>
 </body>
