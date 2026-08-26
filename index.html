@@ -73,6 +73,32 @@
   #repiChartGrid.is-multiple{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.repi-chart-card .repi-chart-body{overflow:auto}
   @media(max-width:760px){.dataset-browser{grid-template-columns:1fr}.dataset-browser-count{justify-self:start}.dataset-browser select{min-height:48px}.dataset-table-choice{min-width:0}#repiChartGrid.is-multiple{grid-template-columns:1fr}.repi-chart-svg{min-width:680px}}
 </style>
+<style id="table-select-size-v17">
+/* Only size and align the table selector; preserve its existing behavior. */
+#main-content #datasetNav .dataset-table-choice{
+  box-sizing:border-box!important;
+  width:min(100%,760px)!important;
+  max-width:760px!important;
+  min-width:0!important;
+  justify-self:start!important;
+  margin:2px 0 0!important;
+}
+#main-content #datasetNav .dataset-table-choice .nds-form-control{width:100%!important}
+#main-content #datasetNav #datasetTableSelect{
+  box-sizing:border-box!important;
+  width:100%!important;
+  min-height:50px!important;
+  height:50px!important;
+  padding-block:8px!important;
+  padding-inline:14px 42px!important;
+  font-size:14px!important;
+  border-radius:8px!important;
+}
+@media(max-width:800px){
+  #main-content #datasetNav .dataset-table-choice{width:100%!important;max-width:none!important}
+  #main-content #datasetNav #datasetTableSelect{min-height:48px!important;height:48px!important}
+}
+</style>
 <style id="developer-formats-reliability-v11">
 #dataTablePanel .developer-formats:not(.is-open)>.developer-formats-list{display:none!important}
 #dataTablePanel .developer-formats.is-open>.developer-formats-list{display:grid!important}
@@ -618,14 +644,26 @@ body.chart-modal-open,body.repi-modal-open{overflow:hidden!important}
                 <button class="advanced-export-option advanced-export-option-featured" id="filteredExcelBtn" type="button"><span class="advanced-export-code">XLS</span><span><strong>Excel مفلتر</strong><small>النتائج الحالية + ورقة معلومات</small></span><svg class="advanced-export-download" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 5-5m-5 5-5-5M5 21h14"/></svg></button>
                 <button class="advanced-export-option" id="exportBtn" type="button"><span class="advanced-export-code">CSV</span><span><strong>CSV مفلتر</strong><small>للتحليل السريع</small></span><svg class="advanced-export-download" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 5-5m-5 5-5-5M5 21h14"/></svg></button>
               </div>
-              <details class="nds-accordion-item nds-newsletter-accordion developer-formats">
-                <summary class="nds-btn nds-subtle nds-menu-btn nds-accordion-btn"><span><strong>صيغ للمطورين</strong><small>JSON وSDMX</small></span><span class="developer-formats-count">3</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg></summary>
-                <div class="developer-formats-list">
+              <div class="developer-formats" id="developerFormats">
+                <button class="developer-formats-trigger" id="developerFormatsTrigger" type="button" aria-expanded="false" aria-controls="developerFormatsList"><span><strong>صيغ للمطورين</strong><small>JSON وSDMX</small></span><span class="developer-formats-count">3</span><svg class="developer-formats-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg></button>
+                <div class="developer-formats-list" id="developerFormatsList" hidden>
                   <button class="advanced-export-option" id="jsonExportBtn" type="button"><span class="advanced-export-code">JSON</span><span><strong>JSON — النتائج</strong><small>سجلات الجدول المطابقة فقط</small></span><svg class="advanced-export-download" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 5-5m-5 5-5-5M5 21h14"/></svg></button>
                   <button class="advanced-export-option" id="apiExportBtn" type="button"><span class="advanced-export-code">JSON+</span><span><strong>JSON منظّم</strong><small>البيانات مع معلومات الجدول والفلاتر</small></span><svg class="advanced-export-download" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 5-5m-5 5-5-5M5 21h14"/></svg></button>
                   <button class="advanced-export-option" id="sdmxExportBtn" type="button"><span class="advanced-export-code">CSV</span><span><strong>SDMX-CSV</strong><small>صيغة تبادل للبيانات الإحصائية</small></span><svg class="advanced-export-download" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 5-5m-5 5-5-5M5 21h14"/></svg></button>
                 </div>
-              </details>
+              </div>
+              <style>
+                #developerFormats{margin:10px 0 0!important;border-top:1px solid #d2d6db!important;border-bottom:1px solid #d2d6db!important;background:#fff!important}
+                #developerFormatsTrigger{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;width:100%!important;min-height:54px!important;padding:9px 12px!important;color:#30453d!important;background:#fff!important;border:0!important;border-radius:0!important;cursor:pointer!important;text-align:right!important;pointer-events:auto!important;position:relative!important;z-index:2!important}
+                #developerFormatsTrigger:hover,#developerFormatsTrigger:focus-visible{background:#f3f4f6!important}
+                #developerFormatsTrigger::before,#developerFormatsTrigger::after{display:none!important;content:none!important}
+                #developerFormatsTrigger>span:first-child{display:flex!important;flex:1!important;align-items:baseline!important;gap:7px!important}
+                #developerFormatsTrigger small{color:#60726b!important;font-size:11px!important}
+                #developerFormatsTrigger .developer-formats-chevron{display:block!important;width:18px!important;height:18px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.8!important;transition:transform .18s ease!important}
+                #developerFormatsTrigger[aria-expanded="true"] .developer-formats-chevron{transform:rotate(180deg)!important}
+                #developerFormatsList[hidden]{display:none!important}
+                #developerFormatsList:not([hidden]){display:grid!important;padding:8px!important;border-top:1px solid #d7e2dc!important}
+              </style>
               <a class="advanced-export-option advanced-export-official" id="officialExcelDownload" href="Umrah%20Statistics%20Q1%202026-AR.xlsx" download><span class="advanced-export-code">XLSX</span><span><strong>Excel — جميع جداول النشرة</strong><small>ملف مجمّع يُنشأ من البيانات المضمنة في الصفحة</small></span><svg class="advanced-export-download" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 5-5m-5 5-5-5M5 21h14"/></svg></a>
               <p class="advanced-export-note">تُنشأ جميع صيغ التنزيل مباشرة داخل المتصفح من بيانات النشرة المضمنة في الصفحة.</p>
             </div>
@@ -743,6 +781,62 @@ body.chart-modal-open,body.repi-modal-open{overflow:hidden!important}
   support.remove();
 })();
 </script>
+<style id="simple-dataset-selector-v13">
+/* Compact segmented selector: this is navigation, not a primary action. */
+#main-content #datasetNav .dataset-domain-options{
+  display:flex!important;
+  align-items:stretch!important;
+  justify-content:flex-start!important;
+  gap:4px!important;
+  width:max-content!important;
+  max-width:100%!important;
+  padding:4px!important;
+  overflow-x:auto!important;
+  background:#edf1ef!important;
+  border:1px solid #d8dfdb!important;
+  border-radius:10px!important;
+  scrollbar-width:thin!important;
+}
+#main-content #datasetNav .dataset-domain-option{
+  flex:0 0 auto!important;
+  width:auto!important;
+  min-width:170px!important;
+  min-height:40px!important;
+  padding:8px 16px!important;
+  color:#344b42!important;
+  background:transparent!important;
+  border:1px solid transparent!important;
+  border-radius:7px!important;
+  box-shadow:none!important;
+  font-size:13px!important;
+  font-weight:700!important;
+  line-height:1.4!important;
+}
+#main-content #datasetNav .dataset-domain-option::before,
+#main-content #datasetNav .dataset-domain-option::after{
+  display:none!important;
+  content:none!important;
+}
+#main-content #datasetNav .dataset-domain-option:hover{
+  color:#166a45!important;
+  background:#f7faf8!important;
+}
+#main-content #datasetNav .dataset-domain-option.is-active,
+#main-content #datasetNav .dataset-domain-option[aria-pressed="true"]{
+  color:#166a45!important;
+  background:#fff!important;
+  border-color:#cbd7d1!important;
+  box-shadow:0 1px 3px rgba(22,61,48,.08)!important;
+}
+#main-content #datasetNav .dataset-domain-option:focus-visible{
+  outline:3px solid rgba(27,131,84,.2)!important;
+  outline-offset:1px!important;
+}
+@media(max-width:600px){
+  #main-content #datasetNav .dataset-domain-options{width:100%!important;box-sizing:border-box!important}
+  #main-content #datasetNav .dataset-domain-option{min-width:145px!important;padding-inline:12px!important}
+}
+</style>
 
 <style id="ux-spacing-polish-v11">
 /* Final spacing pass: keep related controls visually grouped and remove dead space. */
@@ -1616,6 +1710,27 @@ addEventListener('load',send);new ResizeObserver(send).observe(document.getEleme
     if(event.target.closest('.advanced-export-option'))setTimeout(()=>setOpen(false),150);
   });
 
+  const developerTrigger=document.getElementById('developerFormatsTrigger');
+  const developerList=document.getElementById('developerFormatsList');
+  if(developerTrigger&&developerList){
+    const setDeveloperOpen=open=>{
+      developerTrigger.setAttribute('aria-expanded',String(open));
+      developerList.hidden=!open;
+      developerTrigger.closest('.developer-formats')?.classList.toggle('is-open',open);
+    };
+    developerTrigger.addEventListener('click',event=>{
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      setDeveloperOpen(developerTrigger.getAttribute('aria-expanded')!=='true');
+    });
+    developerTrigger.addEventListener('keydown',event=>{
+      if(event.key!=='Enter'&&event.key!==' ')return;
+      event.preventDefault();
+      setDeveloperOpen(developerTrigger.getAttribute('aria-expanded')!=='true');
+    });
+    setDeveloperOpen(false);
+  }
+
   setOpen(false);
 })();
 </script>
@@ -1844,6 +1959,111 @@ addEventListener('load',send);new ResizeObserver(send).observe(document.getEleme
     new MutationObserver(sync).observe(nav,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden']});
     panel.classList.add('is-waiting-for-dataset');
     sync();
+  };
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+</script>
+<style id="clear-dataset-selector-v14">
+/* Balanced radio-card pattern: clear interaction without primary-action weight. */
+#main-content #datasetNav .dataset-domain-options{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:10px!important;
+  width:100%!important;
+  max-width:none!important;
+  padding:0!important;
+  overflow:visible!important;
+  background:transparent!important;
+  border:0!important;
+  border-radius:0!important;
+}
+#main-content #datasetNav .dataset-domain-option{
+  position:relative!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:100%!important;
+  min-width:0!important;
+  min-height:48px!important;
+  padding:10px 42px 10px 16px!important;
+  color:#2f443c!important;
+  background:#fff!important;
+  border:1px solid #bdcbc4!important;
+  border-radius:9px!important;
+  box-shadow:none!important;
+  font-size:14px!important;
+  font-weight:700!important;
+  line-height:1.45!important;
+  cursor:pointer!important;
+}
+#main-content #datasetNav .dataset-domain-option::before{
+  display:block!important;
+  content:""!important;
+  position:absolute!important;
+  inset-inline-start:16px!important;
+  width:16px!important;
+  height:16px!important;
+  box-sizing:border-box!important;
+  border:2px solid #8b9e95!important;
+  border-radius:50%!important;
+  background:#fff!important;
+}
+#main-content #datasetNav .dataset-domain-option::after{display:none!important;content:none!important}
+#main-content #datasetNav .dataset-domain-option:hover{
+  color:#155d3d!important;
+  background:#f7fbf9!important;
+  border-color:#78aa91!important;
+}
+#main-content #datasetNav .dataset-domain-option.is-active,
+#main-content #datasetNav .dataset-domain-option[aria-pressed="true"]{
+  color:#155d3d!important;
+  background:#eef8f3!important;
+  border-color:#1b8354!important;
+  box-shadow:inset 0 0 0 1px #1b8354!important;
+}
+#main-content #datasetNav .dataset-domain-option.is-active::before,
+#main-content #datasetNav .dataset-domain-option[aria-pressed="true"]::before{
+  border:5px solid #1b8354!important;
+}
+#main-content #datasetNav .dataset-domain-option:focus-visible{
+  outline:3px solid rgba(27,131,84,.22)!important;
+  outline-offset:2px!important;
+}
+@media(max-width:700px){
+  #main-content #datasetNav .dataset-domain-options{grid-template-columns:1fr!important;gap:7px!important}
+  #main-content #datasetNav .dataset-domain-option{min-height:44px!important;justify-content:flex-start!important;padding:9px 42px 9px 12px!important;text-align:right!important}
+}
+</style>
+<style id="table-select-size-v17-final">
+#main-content #dataTablePanel #datasetNav .dataset-table-choice{box-sizing:border-box!important;width:min(100%,760px)!important;max-width:760px!important;min-width:0!important;justify-self:start!important;margin:2px 0 0!important}
+#main-content #dataTablePanel #datasetNav .dataset-table-choice .nds-form-control{width:100%!important}
+#main-content #dataTablePanel #datasetNav #datasetTableSelect{box-sizing:border-box!important;width:100%!important;min-height:50px!important;height:50px!important;padding-block:8px!important;padding-inline:14px 42px!important;font-size:14px!important;border-radius:8px!important}
+@media(max-width:800px){#main-content #dataTablePanel #datasetNav .dataset-table-choice{width:100%!important;max-width:none!important}#main-content #dataTablePanel #datasetNav #datasetTableSelect{min-height:48px!important;height:48px!important}}
+</style>
+<style id="table-auto-reveal-v18">
+#main-content #dataTablePanel .table-heading{scroll-margin-top:24px!important}
+#main-content #dataTablePanel .table-heading.table-arrival-highlight{animation:tableArrivalV18 1.2s ease-out}
+@keyframes tableArrivalV18{0%{background:#eaf6f0}100%{background:transparent}}
+@media(prefers-reduced-motion:reduce){#main-content #dataTablePanel .table-heading.table-arrival-highlight{animation:none}}
+</style>
+<script id="table-auto-reveal-v18">
+(()=>{
+  const init=()=>{
+    const nav=document.getElementById('datasetNav'),heading=document.querySelector('#dataTablePanel .table-heading');
+    if(!nav||!heading)return;
+    let timer;
+    const reveal=()=>{
+      clearTimeout(timer);
+      timer=setTimeout(()=>{
+        if(heading.offsetParent===null)return;
+        heading.classList.remove('table-arrival-highlight');
+        void heading.offsetWidth;
+        heading.classList.add('table-arrival-highlight');
+        heading.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start',inline:'nearest'});
+        setTimeout(()=>heading.classList.remove('table-arrival-highlight'),1300);
+      },140);
+    };
+    nav.addEventListener('change',event=>{if(event.target.id==='datasetTableSelect')reveal()});
   };
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
