@@ -1584,7 +1584,7 @@ window.__umrahSaveBlob=(blob,name)=>{
         const filterParts=[state.search?`البحث: ${state.search}`:'',...Object.entries(state.filters).filter(([,value])=>value).map(([name,value])=>`${name}: ${value}`)].filter(Boolean);
         const filterSummary=filterParts.length?filterParts.join(' | '):'دون فلاتر إضافية';
         const officialReleaseUrl='https://www.stats.gov.sa/ar/statistics-tabs?category=2197199&tab=436312&year=127357';
-        const publicPageUrl='https://azghamdi.github.io/publication-tables/'+(location.hash||'');
+        const publicPageUrl='https://azghamdi.github.io/publication2023/'+(location.hash||'');
         const archiveUrl='https://azghamdi.github.io/releases-archive/';
         const generatedDate=new Intl.DateTimeFormat('en-CA',{year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
         const reg=window.__umrahXlsx.makeStyleRegistry();
@@ -1626,7 +1626,7 @@ window.__umrahSaveBlob=(blob,name)=>{
         infoRows.push({height:28,cells:[{v:'تعريف الملف ونطاق البيانات',s:sInfoSection}]});
         const hyperlinks=[];
         const addInfo=(label,value,href='')=>{const r=infoRows.length+1;infoRows.push({height:29,cells:[{v:label,s:sInfoLabel},{v:value,s:href?sInfoLink:sInfoValue}]});if(href)hyperlinks.push({ref:`B${r}`,target:href})};
-        addInfo('اسم النشرة','إحصاءات العمرة');addInfo('الجدول',d.shortTitle);addInfo('وصف الجدول',d.title);addInfo('الفترة المرجعية',d.description);addInfo('نطاق التنزيل','النتائج الحالية بعد تطبيق الفلاتر');addInfo('عدد الصفوف',String(rows.length));addInfo('الفلاتر المطبقة',filterSummary);addInfo('وحدات القياس','أعداد ونسب مئوية (%)');addInfo('تاريخ إنشاء الملف',generatedDate);
+        addInfo('اسم النشرة','إحصاءات العمرة');addInfo('الجدول',String(d.shortTitle||'').replace(/^[\d.]+\s*—\s*/,''));addInfo('وصف الجدول',d.title);addInfo('الفترة المرجعية',String(d.description||'').replace(/\s*—\s*جدول\s*\([^)]*\)\s*$/,''));addInfo('نطاق التنزيل','النتائج الحالية بعد تطبيق الفلاتر');addInfo('عدد الصفوف',String(rows.length));addInfo('الفلاتر المطبقة',filterSummary);addInfo('وحدات القياس','أعداد ونسب مئوية (%)');addInfo('تاريخ إنشاء الملف',generatedDate);
         infoRows.push({height:12,cells:[]});
         infoRows.push({height:28,cells:[{v:'الروابط المرجعية',s:sInfoSection}]});
         addInfo('صفحة العرض التفاعلية','فتح العرض المحفوظ والفلاتر المختارة',publicPageUrl);
